@@ -15,7 +15,7 @@ export const useWallet = () => {
   });
 
   const connectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
+    if (typeof window !== 'undefined' && window.ethereum) {
       setWallet(prev => ({ ...prev, isConnecting: true }));
       
       try {
@@ -49,7 +49,7 @@ export const useWallet = () => {
 
   useEffect(() => {
     // Check if wallet is already connected
-    if (typeof window.ethereum !== 'undefined') {
+    if (typeof window !== 'undefined' && window.ethereum) {
       window.ethereum.request({ method: 'eth_accounts' })
         .then((accounts: string[]) => {
           if (accounts.length > 0) {
@@ -59,6 +59,9 @@ export const useWallet = () => {
               isConnecting: false,
             });
           }
+        })
+        .catch((error) => {
+          console.error('Error checking wallet connection:', error);
         });
     }
   }, []);
