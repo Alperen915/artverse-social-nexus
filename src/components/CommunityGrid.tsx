@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Users, Crown } from 'lucide-react';
+import { Users, Crown, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Community {
   id: string;
@@ -23,6 +24,7 @@ const CommunityGrid = () => {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCommunities();
@@ -82,6 +84,10 @@ const CommunityGrid = () => {
     } catch (error) {
       console.error('Error:', error);
     }
+  };
+
+  const viewCommunity = (communityId: string) => {
+    navigate(`/community/${communityId}`);
   };
 
   if (loading) {
@@ -172,8 +178,12 @@ const CommunityGrid = () => {
                     >
                       Join Community
                     </Button>
-                    <Button variant="outline" className="px-4">
-                      View
+                    <Button 
+                      variant="outline" 
+                      className="px-4"
+                      onClick={() => viewCommunity(community.id)}
+                    >
+                      <Eye className="w-4 h-4" />
                     </Button>
                   </div>
                 </CardContent>
