@@ -90,8 +90,15 @@ export const CreateProposalModal = ({ isOpen, onClose, communityId }: CreateProp
             <option value="treasury">Treasury</option>
             <option value="governance">Governance</option>
             <option value="membership">Membership</option>
+            <option value="gallery">NFT Gallery</option>
           </select>
           
+          {formData.proposalType === 'gallery' && (
+            <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
+              <p><strong>Note:</strong> Use the "Propose Gallery" button in the Gallery tab for better gallery creation experience.</p>
+            </div>
+          )}
+
           <Button 
             type="submit" 
             disabled={loading || !formData.title || !formData.description}

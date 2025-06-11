@@ -186,6 +186,145 @@ export type Database = {
           },
         ]
       }
+      gallery_sales: {
+        Row: {
+          buyer_address: string
+          id: string
+          sale_date: string | null
+          sale_price: number
+          submission_id: string | null
+          transaction_hash: string | null
+        }
+        Insert: {
+          buyer_address: string
+          id?: string
+          sale_date?: string | null
+          sale_price: number
+          submission_id?: string | null
+          transaction_hash?: string | null
+        }
+        Update: {
+          buyer_address?: string
+          id?: string
+          sale_date?: string | null
+          sale_price?: number
+          submission_id?: string | null
+          transaction_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_sales_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gallery_submissions: {
+        Row: {
+          description: string | null
+          gallery_id: string | null
+          id: string
+          image_url: string
+          nft_contract: string | null
+          nft_token_id: string | null
+          price: number
+          sold: boolean | null
+          submitted_at: string | null
+          submitter_id: string | null
+          title: string
+        }
+        Insert: {
+          description?: string | null
+          gallery_id?: string | null
+          id?: string
+          image_url: string
+          nft_contract?: string | null
+          nft_token_id?: string | null
+          price: number
+          sold?: boolean | null
+          submitted_at?: string | null
+          submitter_id?: string | null
+          title: string
+        }
+        Update: {
+          description?: string | null
+          gallery_id?: string | null
+          id?: string
+          image_url?: string
+          nft_contract?: string | null
+          nft_token_id?: string | null
+          price?: number
+          sold?: boolean | null
+          submitted_at?: string | null
+          submitter_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_submissions_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "nft_galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nft_galleries: {
+        Row: {
+          community_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          proposal_id: string | null
+          status: string | null
+          submission_deadline: string | null
+          title: string
+          total_revenue: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          community_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          proposal_id?: string | null
+          status?: string | null
+          submission_deadline?: string | null
+          title: string
+          total_revenue?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          community_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          proposal_id?: string | null
+          status?: string | null
+          submission_deadline?: string | null
+          title?: string
+          total_revenue?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_galleries_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_galleries_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string | null
@@ -327,6 +466,41 @@ export type Database = {
             columns: ["community_id"]
             isOneToOne: false
             referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_distributions: {
+        Row: {
+          amount: number
+          distributed_at: string | null
+          gallery_id: string | null
+          id: string
+          member_id: string | null
+          transaction_hash: string | null
+        }
+        Insert: {
+          amount: number
+          distributed_at?: string | null
+          gallery_id?: string | null
+          id?: string
+          member_id?: string | null
+          transaction_hash?: string | null
+        }
+        Update: {
+          amount?: number
+          distributed_at?: string | null
+          gallery_id?: string | null
+          id?: string
+          member_id?: string | null
+          transaction_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_distributions_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "nft_galleries"
             referencedColumns: ["id"]
           },
         ]

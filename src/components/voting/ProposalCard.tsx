@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +27,69 @@ interface ProposalCardProps {
 
 export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
   const [voting, setVoting] = useState(false);
+  const [processingResult, setProcessingResult] = useState(false);
   const { user } = useAuth();
+
+  // Check if voting has ended and process result if needed
+  useEffect(() => {
+    const checkAndProcessResult = async () => {
+      if (proposal.status === 'active' && new Date() >= new Date(proposal.voting_end)) {
+        await processProposalResult();
+      }
+    };
+
+    checkAndProcessResult();
+  }, [proposal]);
+
+  const processProposalResult = async () => {
+    if (processingResult) return;
+    
+    setProcessingResult(true);
+    try {
+      const totalVotes = proposal.yes_votes + proposal.no_votes;
+      const passed = totalVotes > 0 && proposal.yes_votes > proposal.no_votes;
+      const newStatus = passed ? 'passed' : 'rejected';
+
+      // Update proposal status
+      const { error: proposalError } = await supabase
+        .from('proposals')
+        .update({ status: newStatus })
+        .eq('id', proposal.id);
+
+      if (proposalError) {
+        console.error('Error updating proposal status:', proposalError);
+        return;
+      }
+
+      // If it's a gallery proposal and it passed, activate the gallery
+      if (proposal.proposal_type === 'gallery' && passed) {
+        const { error: galleryError } = await supabase
+          .from('nft_galleries')
+          .update({ status: 'active' })
+          .eq('proposal_id', proposal.id);
+
+        if (galleryError) {
+          console.error('Error activating gallery:', galleryError);
+        }
+      } else if (proposal.proposal_type === 'gallery' && !passed) {
+        // If gallery proposal was rejected, cancel the gallery
+        const { error: galleryError } = await supabase
+          .from('nft_galleries')
+          .update({ status: 'cancelled' })
+          .eq('proposal_id', proposal.id);
+
+        if (galleryError) {
+          console.error('Error cancelling gallery:', galleryError);
+        }
+      }
+
+      onVoteUpdate();
+    } catch (error) {
+      console.error('Error processing proposal result:', error);
+    } finally {
+      setProcessingResult(false);
+    }
+  };
 
   const handleVote = async (voteChoice: boolean) => {
     if (!user) {
@@ -121,6 +183,13 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
 
       <CardContent>
         <div className="space-y-4">
+          {/* Special notice for gallery proposals */}
+          {proposal.proposal_type === 'gallery' && (
+            <div className="bg-purple-50 p-3 rounded-lg text-sm text-purple-800">
+              <p><strong>Gallery Proposal:</strong> If passed, all members must submit artwork and revenue will be shared equally.</p>
+            </div>
+          )}
+
           {/* Voting Results */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-gray-600">
@@ -146,7 +215,7 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
             <div className="flex gap-2">
               <Button
                 onClick={() => handleVote(true)}
-                disabled={voting}
+                disabled={voting || processingResult}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
                 <ThumbsUp className="w-4 h-4 mr-2" />
@@ -154,13 +223,26 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
               </Button>
               <Button
                 onClick={() => handleVote(false)}
-                disabled={voting}
+                disabled={voting || processingResult}
                 variant="outline"
                 className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
               >
                 <ThumbsDown className="w-4 h-4 mr-2" />
                 Vote No
               </Button>
+            </div>
+          )}
+
+          {/* Status Messages */}
+          {proposal.status === 'passed' && proposal.proposal_type === 'gallery' && (
+            <div className="bg-green-50 p-3 rounded-lg text-sm text-green-800">
+              <p><strong>Gallery Approved!</strong> Members can now submit their artwork. Check the Gallery tab.</p>
+            </div>
+          )}
+
+          {proposal.status === 'rejected' && proposal.proposal_type === 'gallery' && (
+            <div className="bg-red-50 p-3 rounded-lg text-sm text-red-800">
+              <p><strong>Gallery Rejected:</strong> This gallery proposal did not pass community vote.</p>
             </div>
           )}
 

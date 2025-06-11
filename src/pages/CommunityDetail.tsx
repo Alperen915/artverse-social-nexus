@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { VotingSection } from '@/components/voting/VotingSection';
 import { NFTSalesTracker } from '@/components/revenue/NFTSalesTracker';
+import { GalleryManager } from '@/components/gallery/GalleryManager';
 import Header from '@/components/Header';
 import { Users, Crown, ArrowLeft, Vote, DollarSign, ImageIcon } from 'lucide-react';
 
@@ -229,18 +230,22 @@ const CommunityDetail = () => {
         {/* Community Content */}
         {isMember ? (
           <Tabs defaultValue="governance" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="governance" className="flex items-center gap-2">
                 <Vote className="w-4 h-4" />
                 Governance
+              </TabsTrigger>
+              <TabsTrigger value="galleries" className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4" />
+                Galleries
               </TabsTrigger>
               <TabsTrigger value="revenue" className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
                 Revenue
               </TabsTrigger>
-              <TabsTrigger value="gallery" className="flex items-center gap-2">
+              <TabsTrigger value="legacy-gallery" className="flex items-center gap-2">
                 <ImageIcon className="w-4 h-4" />
-                Gallery
+                Legacy
               </TabsTrigger>
             </TabsList>
 
@@ -248,20 +253,24 @@ const CommunityDetail = () => {
               <VotingSection communityId={community.id} />
             </TabsContent>
 
+            <TabsContent value="galleries">
+              <GalleryManager communityId={community.id} />
+            </TabsContent>
+
             <TabsContent value="revenue">
               <NFTSalesTracker communityId={community.id} />
             </TabsContent>
 
-            <TabsContent value="gallery">
+            <TabsContent value="legacy-gallery">
               <Card>
                 <CardHeader>
-                  <CardTitle>Community Gallery</CardTitle>
+                  <CardTitle>Community Gallery (Legacy)</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center py-12">
                   <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Gallery feature coming soon!</p>
+                  <p className="text-gray-600">Legacy gallery feature!</p>
                   <p className="text-sm text-gray-500 mt-2">
-                    Share and showcase your NFT artwork with the community.
+                    This was the old gallery. Use the new "Galleries" tab for community-driven NFT galleries.
                   </p>
                 </CardContent>
               </Card>
@@ -275,7 +284,7 @@ const CommunityDetail = () => {
                 Join to Access Community Features
               </h3>
               <p className="text-gray-600 mb-6">
-                Become a member to participate in governance, track revenue, and access the community gallery.
+                Become a member to participate in governance, create galleries, track revenue, and access community features.
               </p>
               <Button 
                 onClick={joinCommunity}
