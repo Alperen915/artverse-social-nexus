@@ -17,6 +17,7 @@ export const useAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth event:', event, session?.user?.email);
         setUser(session?.user ?? null);
         setLoading(false);
       }
@@ -26,9 +27,14 @@ export const useAuth = () => {
   }, []);
 
   const signUp = async (email: string, password: string) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
     });
     return { data, error };
   };

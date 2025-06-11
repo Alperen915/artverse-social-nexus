@@ -10,10 +10,11 @@ import { LogOut, Plus, Wallet } from 'lucide-react';
 const Header = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const { address, connectWallet, disconnectWallet, isConnected } = useWallet();
 
   const handleCreateCommunity = () => {
+    console.log('Create community clicked, user:', user);
     if (!user) {
       setShowAuthModal(true);
     } else {
@@ -21,12 +22,31 @@ const Header = () => {
     }
   };
 
-  const handleWalletAction = () => {
+  const handleWalletAction = async () => {
+    console.log('Wallet action clicked, isConnected:', isConnected);
     if (isConnected) {
       disconnectWallet();
     } else {
-      connectWallet();
+      try {
+        await connectWallet();
+      } catch (error) {
+        console.error('Wallet connection failed:', error);
+      }
     }
+  };
+
+  const handleSignOut = async () => {
+    console.log('Sign out clicked');
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
+  };
+
+  const handleSignIn = () => {
+    console.log('Sign in clicked');
+    setShowAuthModal(true);
   };
 
   return (
@@ -64,6 +84,7 @@ const Header = () => {
                 variant="outline"
                 onClick={handleWalletAction}
                 className="hidden sm:flex items-center gap-2"
+                disabled={loading}
               >
                 <Wallet className="w-4 h-4" />
                 {isConnected 
@@ -76,6 +97,7 @@ const Header = () => {
               <Button
                 onClick={handleCreateCommunity}
                 className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                disabled={loading}
               >
                 <Plus className="w-4 h-4" />
                 Create Community
@@ -85,15 +107,19 @@ const Header = () => {
               {user ? (
                 <Button
                   variant="ghost"
-                  onClick={signOut}
+                  onClick={handleSignOut}
                   className="flex items-center gap-2"
+                  disabled={loading}
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
                 </Button>
               ) : (
-                <Button onClick={() => setShowAuthModal(true)}>
-                  Sign In
+                <Button 
+                  onClick={handleSignIn}
+                  disabled={loading}
+                >
+                  {loading ? 'Loading...' : 'Sign In'}
                 </Button>
               )}
             </div>
@@ -101,8 +127,14 @@ const Header = () => {
         </div>
       </header>
 
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
-      <CreateCommunityModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
+      <CreateCommunityModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
+      />
     </>
   );
 };
