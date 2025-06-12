@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -98,7 +97,7 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
       // First get the community ID for this gallery
       const { data: gallery, error: galleryError } = await supabase
         .from('nft_galleries')
-        .select('community_id')
+        .select('community_id, total_revenue')
         .eq('id', galleryId)
         .single();
 
@@ -137,12 +136,11 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
       // Distribute revenue to all community members
       await distributeRevenue(submission.price, gallery.community_id);
 
-      // Update gallery total revenue
+      // Update gallery total revenue by adding the sale price to the current total
+      const newTotalRevenue = (gallery.total_revenue || 0) + submission.price;
       const { error: revenueError } = await supabase
         .from('nft_galleries')
-        .update({ 
-          total_revenue: supabase.raw(`total_revenue + ${submission.price}`)
-        })
+        .update({ total_revenue: newTotalRevenue })
         .eq('id', galleryId);
 
       if (revenueError) {
