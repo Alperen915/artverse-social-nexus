@@ -18,6 +18,8 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    websiteUrl: '',
+    logoUrl: '',
     genesisNftContract: '',
     tokenGateContract: '',
     tokenGateThreshold: 1,
@@ -50,6 +52,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
       const communityData = {
         name: formData.name.trim(),
         description: formData.description.trim() || null,
+        cover_image: formData.logoUrl.trim() || null,
         genesis_nft_contract: formData.genesisNftContract.trim() || null,
         token_gate_contract: formData.tokenGateContract.trim() || null,
         token_gate_threshold: formData.tokenGateThreshold || 1,
@@ -75,6 +78,8 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
         setFormData({
           name: '',
           description: '',
+          websiteUrl: '',
+          logoUrl: '',
           genesisNftContract: '',
           tokenGateContract: '',
           tokenGateThreshold: 1,
@@ -98,6 +103,8 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
     setFormData({
       name: '',
       description: '',
+      websiteUrl: '',
+      logoUrl: '',
       genesisNftContract: '',
       tokenGateContract: '',
       tokenGateThreshold: 1,
@@ -113,7 +120,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
         onClose();
       }
     }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Community</DialogTitle>
           <DialogDescription>
@@ -151,6 +158,22 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={3}
+            disabled={loading}
+          />
+
+          <Input
+            placeholder="Website URL (optional)"
+            type="url"
+            value={formData.websiteUrl}
+            onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+            disabled={loading}
+          />
+
+          <Input
+            placeholder="Logo Image URL (optional)"
+            type="url"
+            value={formData.logoUrl}
+            onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
             disabled={loading}
           />
           

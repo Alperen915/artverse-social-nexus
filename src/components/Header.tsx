@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
@@ -63,25 +64,25 @@ const Header = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 Artverse
-              </h1>
+              </Link>
             </div>
 
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#" className="text-gray-700 hover:text-purple-600 transition-colors">
+              <Link to="/" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Communities
-              </a>
-              <a href="#" className="text-gray-700 hover:text-purple-600 transition-colors">
+              </Link>
+              <Link to="/gallery" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Gallery
-              </a>
-              <a href="#" className="text-gray-700 hover:text-purple-600 transition-colors">
+              </Link>
+              <Link to="/governance" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Governance
-              </a>
-              <a href="#" className="text-gray-700 hover:text-purple-600 transition-colors">
+              </Link>
+              <Link to="/events" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Events
-              </a>
+              </Link>
             </nav>
 
             {/* Actions */}
