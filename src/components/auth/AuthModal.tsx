@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
-import { Wallet, Mail, AlertCircle } from 'lucide-react';
+import { Wallet, Mail, AlertCircle, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AuthModalProps {
@@ -24,12 +24,24 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const { connectWallet, address, isConnecting } = useWallet();
 
   const handleEmailAuth = async (isSignUp: boolean) => {
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setSuccess(null);
     
     try {
-      const { error } = isSignUp 
+      console.log(`Attempting to ${isSignUp ? 'sign up' : 'sign in'} with email:`, email);
+      
+      const { data, error } = isSignUp 
         ? await signUp(email, password)
         : await signIn(email, password);
       
@@ -37,30 +49,36 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         console.error('Auth error:', error);
         
         // Handle specific error cases
-        if (error.message.includes('Invalid login credentials')) {
+        if (error.message?.includes('Invalid login credentials')) {
           setError('Invalid email or password. Please check your credentials.');
-        } else if (error.message.includes('rate limit')) {
+        } else if (error.message?.includes('rate limit')) {
           setError('Too many requests. Please wait a moment before trying again.');
-        } else if (error.message.includes('already registered')) {
-          setError('This email is already registered. Try signing in instead.');
-        } else if (isSignUp && error.message.includes('User already registered')) {
-          setError('Account already exists with this email. Try signing in instead.');
-        } else if (isSignUp) {
-          setSuccess('Account created! Please check your email to confirm your account.');
+        } else if (error.message?.includes('already registered') || error.message?.includes('User already registered')) {
+          if (isSignUp) {
+            setError('Account already exists with this email. Try signing in instead.');
+          } else {
+            setError('Invalid email or password. Please check your credentials.');
+          }
+        } else if (isSignUp && error.message?.includes('Signup requires a valid password')) {
+          setError('Please enter a valid password (at least 6 characters).');
+        } else {
+          setError(error.message || `${isSignUp ? 'Sign up' : 'Sign in'} failed. Please try again.`);
+        }
+      } else {
+        console.log('Auth successful:', data);
+        if (isSignUp) {
+          setSuccess('Account created successfully! You can now sign in.');
           setEmail('');
           setPassword('');
         } else {
-          setError(error.message || 'Authentication failed. Please try again.');
-        }
-      } else {
-        if (isSignUp) {
-          setSuccess('Account created successfully! Please check your email to confirm.');
-        } else {
-          onClose();
+          setSuccess('Successfully signed in!');
+          setTimeout(() => {
+            onClose();
+          }, 1000);
         }
       }
     } catch (error) {
-      console.error('Auth error:', error);
+      console.error('Auth exception:', error);
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -69,10 +87,17 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   const handleWalletConnect = async () => {
     setError(null);
+    setSuccess(null);
+    
     try {
+      console.log('Attempting to connect wallet...');
       await connectWallet();
+      
       if (address) {
-        onClose();
+        setSuccess('Wallet connected successfully!');
+        setTimeout(() => {
+          onClose();
+        }, 1000);
       }
     } catch (error) {
       console.error('Wallet connection error:', error);
@@ -113,7 +138,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
         {success && (
           <Alert className="border-green-200 bg-green-50">
-            <AlertCircle className="h-4 w-4 text-green-600" />
+            <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">{success}</AlertDescription>
           </Alert>
         )}

@@ -29,8 +29,14 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!user) {
       setError('You must be signed in to create a community');
+      return;
+    }
+
+    if (!formData.name.trim()) {
+      setError('Community name is required');
       return;
     }
 
@@ -39,23 +45,28 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
     
     try {
       console.log('Creating community with data:', formData);
+      console.log('User ID:', user.id);
       
+      const communityData = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
+        genesis_nft_contract: formData.genesisNftContract.trim() || null,
+        token_gate_contract: formData.tokenGateContract.trim() || null,
+        token_gate_threshold: formData.tokenGateThreshold || 1,
+        creator_id: user.id,
+      };
+
+      console.log('Submitting community data:', communityData);
+
       const { data, error } = await supabase
         .from('communities')
-        .insert({
-          name: formData.name,
-          description: formData.description,
-          genesis_nft_contract: formData.genesisNftContract || null,
-          token_gate_contract: formData.tokenGateContract || null,
-          token_gate_threshold: formData.tokenGateThreshold,
-          creator_id: user.id,
-        })
+        .insert(communityData)
         .select()
         .single();
 
       if (error) {
         console.error('Error creating community:', error);
-        setError('Failed to create community. Please try again.');
+        setError(`Failed to create community: ${error.message}`);
       } else {
         console.log('Community created successfully:', data);
         setSuccess(true);
@@ -76,7 +87,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
         }, 2000);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Exception creating community:', error);
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -128,7 +139,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            placeholder="Community Name"
+            placeholder="Community Name *"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
@@ -168,7 +179,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
           
           <Button 
             type="submit" 
-            disabled={loading || !formData.name || success}
+            disabled={loading || !formData.name.trim() || success}
             className="w-full"
           >
             {loading ? 'Creating...' : success ? 'Created!' : 'Create Community'}

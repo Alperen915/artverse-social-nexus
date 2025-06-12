@@ -7,6 +7,16 @@ interface WalletState {
   isConnecting: boolean;
 }
 
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
+      on?: (event: string, callback: (accounts: string[]) => void) => void;
+      removeListener?: (event: string, callback: (accounts: string[]) => void) => void;
+    };
+  }
+}
+
 export const useWallet = () => {
   const [wallet, setWallet] = useState<WalletState>({
     address: null,
@@ -15,27 +25,37 @@ export const useWallet = () => {
   });
 
   const connectWallet = async () => {
-    if (typeof window !== 'undefined' && window.ethereum) {
-      setWallet(prev => ({ ...prev, isConnecting: true }));
+    if (typeof window === 'undefined') {
+      console.error('Window is undefined');
+      return;
+    }
+
+    if (!window.ethereum) {
+      alert('Please install MetaMask to connect your wallet');
+      return;
+    }
+
+    setWallet(prev => ({ ...prev, isConnecting: true }));
+    
+    try {
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
       
-      try {
-        const accounts = await window.ethereum.request({
-          method: 'eth_requestAccounts',
+      if (accounts && accounts.length > 0) {
+        setWallet({
+          address: accounts[0],
+          isConnected: true,
+          isConnecting: false,
         });
-        
-        if (accounts.length > 0) {
-          setWallet({
-            address: accounts[0],
-            isConnected: true,
-            isConnecting: false,
-          });
-        }
-      } catch (error) {
-        console.error('Error connecting wallet:', error);
+        console.log('Wallet connected:', accounts[0]);
+      } else {
         setWallet(prev => ({ ...prev, isConnecting: false }));
       }
-    } else {
-      alert('Please install MetaMask to connect your wallet');
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+      setWallet(prev => ({ ...prev, isConnecting: false }));
+      throw error;
     }
   };
 
@@ -45,6 +65,7 @@ export const useWallet = () => {
       isConnected: false,
       isConnecting: false,
     });
+    console.log('Wallet disconnected');
   };
 
   useEffect(() => {
@@ -52,17 +73,41 @@ export const useWallet = () => {
     if (typeof window !== 'undefined' && window.ethereum) {
       window.ethereum.request({ method: 'eth_accounts' })
         .then((accounts: string[]) => {
-          if (accounts.length > 0) {
+          if (accounts && accounts.length > 0) {
             setWallet({
               address: accounts[0],
               isConnected: true,
               isConnecting: false,
             });
+            console.log('Wallet already connected:', accounts[0]);
           }
         })
         .catch((error) => {
           console.error('Error checking wallet connection:', error);
         });
+
+      // Listen for account changes
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length === 0) {
+          disconnectWallet();
+        } else {
+          setWallet({
+            address: accounts[0],
+            isConnected: true,
+            isConnecting: false,
+          });
+        }
+      };
+
+      if (window.ethereum.on) {
+        window.ethereum.on('accountsChanged', handleAccountsChanged);
+      }
+
+      return () => {
+        if (window.ethereum?.removeListener) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        }
+      };
     }
   }, []);
 

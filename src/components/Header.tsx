@@ -16,8 +16,10 @@ const Header = () => {
   const handleCreateCommunity = () => {
     console.log('Create community clicked, user:', user);
     if (!user) {
+      console.log('No user, showing auth modal');
       setShowAuthModal(true);
     } else {
+      console.log('User exists, showing create modal');
       setShowCreateModal(true);
     }
   };
@@ -38,9 +40,14 @@ const Header = () => {
   const handleSignOut = async () => {
     console.log('Sign out clicked');
     try {
-      await signOut();
+      const { error } = await signOut();
+      if (error) {
+        console.error('Sign out failed:', error);
+      } else {
+        console.log('Sign out successful');
+      }
     } catch (error) {
-      console.error('Sign out failed:', error);
+      console.error('Sign out exception:', error);
     }
   };
 
