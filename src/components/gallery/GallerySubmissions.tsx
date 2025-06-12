@@ -52,10 +52,62 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
     }
   };
 
+  const distributeRevenue = async (salePrice: number, communityId: string) => {
+    try {
+      // Get all community members
+      const { data: members, error: membersError } = await supabase
+        .from('community_memberships')
+        .select('user_id')
+        .eq('community_id', communityId);
+
+      if (membersError) {
+        console.error('Error fetching community members:', membersError);
+        return;
+      }
+
+      if (members && members.length > 0) {
+        const sharePerMember = salePrice / members.length;
+        
+        // Create revenue distribution records for each member
+        const distributions = members.map(member => ({
+          gallery_id: galleryId,
+          member_id: member.user_id,
+          amount: sharePerMember,
+          transaction_hash: '0x' + Math.random().toString(16).substr(2, 64), // Simulated tx hash
+        }));
+
+        const { error: distributionError } = await supabase
+          .from('revenue_distributions')
+          .insert(distributions);
+
+        if (distributionError) {
+          console.error('Error creating revenue distributions:', distributionError);
+        } else {
+          console.log(`Revenue distributed: ${sharePerMember} ETH to each of ${members.length} members`);
+        }
+      }
+    } catch (error) {
+      console.error('Error distributing revenue:', error);
+    }
+  };
+
   const simulatePurchase = async (submission: Submission) => {
     if (!user) return;
 
     try {
+      // First get the community ID for this gallery
+      const { data: gallery, error: galleryError } = await supabase
+        .from('nft_galleries')
+        .select('community_id')
+        .eq('id', galleryId)
+        .single();
+
+      if (galleryError) {
+        console.error('Error fetching gallery:', galleryError);
+        alert('Failed to fetch gallery information');
+        return;
+      }
+
       // Simulate a purchase by recording a sale
       const { error: saleError } = await supabase
         .from('gallery_sales')
@@ -82,7 +134,22 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
         console.error('Error updating submission:', updateError);
       }
 
-      alert('Purchase successful! (Simulated)');
+      // Distribute revenue to all community members
+      await distributeRevenue(submission.price, gallery.community_id);
+
+      // Update gallery total revenue
+      const { error: revenueError } = await supabase
+        .from('nft_galleries')
+        .update({ 
+          total_revenue: supabase.raw(`total_revenue + ${submission.price}`)
+        })
+        .eq('id', galleryId);
+
+      if (revenueError) {
+        console.error('Error updating gallery revenue:', revenueError);
+      }
+
+      alert(`Purchase successful! Revenue (${submission.price} ETH) distributed equally among all community members.`);
       fetchSubmissions();
     } catch (error) {
       console.error('Error:', error);
@@ -102,14 +169,18 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
   if (submissions.length === 0) {
     return (
       <div className="text-center py-6 bg-gray-50 rounded-lg">
-        <p className="text-gray-600">No submissions yet</p>
+        <p className="text-gray-600">Henüz eser gönderimi yok</p>
+        <p className="text-sm text-gray-500 mt-1">Topluluk üyelerinin eser göndermesi bekleniyor</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <h4 className="font-semibold text-gray-900">Submitted Artworks ({submissions.length})</h4>
+      <h4 className="font-semibold text-gray-900">Gönderilen Eserler ({submissions.length})</h4>
+      <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
+        <p><strong>Gelir Dağıtımı:</strong> Her satıştan elde edilen gelir, topluluk üyeleri arasında eşit olarak dağıtılır.</p>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {submissions.map((submission) => (
           <Card key={submission.id} className="overflow-hidden">
@@ -127,9 +198,9 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
               <div className="flex items-start justify-between mb-2">
                 <h5 className="font-medium text-sm">{submission.title}</h5>
                 {submission.sold ? (
-                  <Badge variant="secondary" className="text-xs">Sold</Badge>
+                  <Badge variant="secondary" className="text-xs">Satıldı</Badge>
                 ) : (
-                  <Badge className="bg-green-100 text-green-800 text-xs">Available</Badge>
+                  <Badge className="bg-green-100 text-green-800 text-xs">Mevcut</Badge>
                 )}
               </div>
               
@@ -147,7 +218,7 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
                     onClick={() => simulatePurchase(submission)}
                     className="text-xs px-2 py-1"
                   >
-                    Buy Now
+                    Satın Al
                   </Button>
                 )}
               </div>
@@ -160,7 +231,7 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
                     rel="noopener noreferrer"
                     className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
                   >
-                    View on OpenSea <ExternalLink className="w-3 h-3" />
+                    OpenSea'da Görüntüle <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
               )}

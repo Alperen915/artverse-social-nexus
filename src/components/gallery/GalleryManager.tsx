@@ -3,12 +3,14 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { CreateGalleryProposalModal } from './CreateGalleryProposalModal';
 import { SubmitArtworkModal } from './SubmitArtworkModal';
 import { GallerySubmissions } from './GallerySubmissions';
-import { ImageIcon, Plus, Calendar, DollarSign } from 'lucide-react';
+import { RevenueDistribution } from './RevenueDistribution';
+import { ImageIcon, Plus, Calendar, DollarSign, Users } from 'lucide-react';
 
 interface GalleryManagerProps {
   communityId: string;
@@ -70,6 +72,21 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'Oylama Bekliyor';
+      case 'active':
+        return 'Aktif';
+      case 'completed':
+        return 'Tamamlandı';
+      case 'cancelled':
+        return 'İptal Edildi';
+      default:
+        return status;
+    }
+  };
+
   const handleSubmitArtwork = (gallery: Gallery) => {
     setSelectedGallery(gallery);
     setShowSubmitModal(true);
@@ -79,7 +96,7 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-        <p className="mt-2 text-gray-600">Loading galleries...</p>
+        <p className="mt-2 text-gray-600">Galeriler yükleniyor...</p>
       </div>
     );
   }
@@ -89,32 +106,42 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ImageIcon className="w-5 h-5 text-purple-600" />
-          <h2 className="text-2xl font-bold text-gray-900">NFT Galleries</h2>
+          <h2 className="text-2xl font-bold text-gray-900">NFT Galerileri</h2>
         </div>
         <Button
           onClick={() => setShowCreateModal(true)}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Propose Gallery
+          Galeri Öner
         </Button>
+      </div>
+
+      <div className="bg-blue-50 p-4 rounded-lg">
+        <h3 className="font-semibold text-blue-800 mb-2">NFT Galeri Sistemi Nasıl Çalışır?</h3>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Topluluk üyeleri galeri önerisi oluşturabilir</li>
+          <li>• Galeri önerisi topluluk oylamasından geçmelidir</li>
+          <li>• Onaylanan galerilere her üye en az bir eser göndermelidir</li>
+          <li>• Satışlardan elde edilen gelir tüm üyeler arasında eşit dağıtılır</li>
+        </ul>
       </div>
 
       {galleries.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-700 mb-2">
-            No galleries yet
+            Henüz galeri yok
           </h3>
           <p className="text-gray-600 mb-4">
-            Propose the first NFT gallery for your community!
+            Topluluğunuz için ilk NFT galerisini önerin!
           </p>
           <Button
             onClick={() => setShowCreateModal(true)}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Propose Gallery
+            Galeri Öner
           </Button>
         </div>
       ) : (
@@ -128,45 +155,62 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
                     <p className="text-gray-600 mt-1">{gallery.description}</p>
                   </div>
                   <Badge className={getStatusColor(gallery.status)}>
-                    {gallery.status}
+                    {getStatusText(gallery.status)}
                   </Badge>
                 </div>
               </CardHeader>
 
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                <Tabs defaultValue="submissions" className="space-y-4">
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1" />
-                      Deadline: {new Date(gallery.submission_deadline).toLocaleDateString()}
+                      Son Tarih: {new Date(gallery.submission_deadline).toLocaleDateString('tr-TR')}
                     </div>
                     <div className="flex items-center">
                       <DollarSign className="w-4 h-4 mr-1" />
-                      Revenue: ${gallery.total_revenue}
+                      Toplam Gelir: {gallery.total_revenue} ETH
                     </div>
                   </div>
 
                   {gallery.status === 'active' && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mb-4">
                       <Button
                         onClick={() => handleSubmitArtwork(gallery)}
                         className="bg-purple-600 hover:bg-purple-700"
                       >
-                        Submit Artwork
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => setSelectedGallery(gallery)}
-                      >
-                        View Submissions
+                        Eser Gönder
                       </Button>
                     </div>
                   )}
 
-                  {gallery.status !== 'pending' && (
-                    <GallerySubmissions galleryId={gallery.id} />
-                  )}
-                </div>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="submissions" className="flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4" />
+                      Eserler
+                    </TabsTrigger>
+                    <TabsTrigger value="revenue" className="flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Gelir Dağıtımı
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="submissions">
+                    {gallery.status !== 'pending' && (
+                      <GallerySubmissions galleryId={gallery.id} />
+                    )}
+                    {gallery.status === 'pending' && (
+                      <div className="text-center py-6 bg-yellow-50 rounded-lg">
+                        <p className="text-yellow-800">Bu galeri hala oylama aşamasında</p>
+                        <p className="text-sm text-yellow-600 mt-1">Oylama sonuçlanmadan eser gönderimi başlamaz</p>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="revenue">
+                    <RevenueDistribution galleryId={gallery.id} />
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           ))}
