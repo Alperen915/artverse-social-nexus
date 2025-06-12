@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { VotingSection } from '@/components/voting/VotingSection';
 import { NFTSalesTracker } from '@/components/revenue/NFTSalesTracker';
 import { GalleryManager } from '@/components/gallery/GalleryManager';
-import { Vote, DollarSign, ImageIcon } from 'lucide-react';
+import { EventsSection } from '@/components/events/EventsSection';
+import { Vote, DollarSign, ImageIcon, Calendar } from 'lucide-react';
 
 interface CommunityTabsProps {
   communityId: string;
@@ -13,18 +14,22 @@ interface CommunityTabsProps {
 export const CommunityTabs = ({ communityId }: CommunityTabsProps) => {
   return (
     <Tabs defaultValue="governance" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-4">
+      <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="governance" className="flex items-center gap-2">
           <Vote className="w-4 h-4" />
-          Governance
+          Yönetim
         </TabsTrigger>
         <TabsTrigger value="galleries" className="flex items-center gap-2">
           <ImageIcon className="w-4 h-4" />
-          Galleries
+          Galeriler
+        </TabsTrigger>
+        <TabsTrigger value="events" className="flex items-center gap-2">
+          <Calendar className="w-4 h-4" />
+          Etkinlikler
         </TabsTrigger>
         <TabsTrigger value="revenue" className="flex items-center gap-2">
           <DollarSign className="w-4 h-4" />
-          Revenue
+          Gelir
         </TabsTrigger>
         <TabsTrigger value="legacy-gallery" className="flex items-center gap-2">
           <ImageIcon className="w-4 h-4" />
@@ -38,6 +43,10 @@ export const CommunityTabs = ({ communityId }: CommunityTabsProps) => {
 
       <TabsContent value="galleries">
         <GalleryManager communityId={communityId} />
+      </TabsContent>
+
+      <TabsContent value="events">
+        <EventsSection communityId={communityId} />
       </TabsContent>
 
       <TabsContent value="revenue">
