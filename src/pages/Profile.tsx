@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { User, Settings, Users, ImageIcon, Calendar } from 'lucide-react';
+import { User, Settings, Users, ImageIcon, Calendar, Vote } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface UserProfile {
@@ -80,35 +80,35 @@ const Profile = () => {
     if (!profileId) return;
 
     try {
-      // Communities joined
-      const { count: communitiesCount } = await supabase
+      // Communities joined - using simpler query approach
+      const communitiesQuery = await supabase
         .from('community_memberships')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', profileId);
 
       // Galleries participated
-      const { count: galleriesCount } = await supabase
+      const galleriesQuery = await supabase
         .from('gallery_submissions')
         .select('*', { count: 'exact', head: true })
         .eq('submitter_id', profileId);
 
       // Proposals created
-      const { count: proposalsCount } = await supabase
+      const proposalsQuery = await supabase
         .from('proposals')
         .select('*', { count: 'exact', head: true })
         .eq('proposer_id', profileId);
 
       // Events attended (RSVP'd)
-      const { count: eventsCount } = await supabase
+      const eventsQuery = await supabase
         .from('event_rsvps')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', profileId);
 
       setStats({
-        communitiesJoined: communitiesCount || 0,
-        galleriesParticipated: galleriesCount || 0,
-        proposalsCreated: proposalsCount || 0,
-        eventsAttended: eventsCount || 0,
+        communitiesJoined: communitiesQuery.count || 0,
+        galleriesParticipated: galleriesQuery.count || 0,
+        proposalsCreated: proposalsQuery.count || 0,
+        eventsAttended: eventsQuery.count || 0,
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
