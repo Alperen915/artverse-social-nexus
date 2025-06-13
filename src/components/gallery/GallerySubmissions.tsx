@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { ExternalLink, Info } from 'lucide-react';
+import { NFTMintModal } from '@/components/nft/NFTMintModal';
+import { ExternalLink, Info, Coins } from 'lucide-react';
 
 interface GallerySubmissionsProps {
   galleryId: string;
@@ -28,6 +28,8 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalMembers, setTotalMembers] = useState(0);
+  const [showMintModal, setShowMintModal] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -190,6 +192,11 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
     }
   };
 
+  const handleMintNFT = (submission: Submission) => {
+    setSelectedSubmission(submission);
+    setShowMintModal(true);
+  };
+
   if (loading) {
     return (
       <div className="text-center py-4">
@@ -235,11 +242,16 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-2">
                 <h5 className="font-medium text-sm">{submission.title}</h5>
-                {submission.sold ? (
-                  <Badge variant="secondary" className="text-xs">Satıldı</Badge>
-                ) : (
-                  <Badge className="bg-green-100 text-green-800 text-xs">Mevcut</Badge>
-                )}
+                <div className="flex gap-1">
+                  {submission.sold ? (
+                    <Badge variant="secondary" className="text-xs">Satıldı</Badge>
+                  ) : (
+                    <Badge className="bg-green-100 text-green-800 text-xs">Mevcut</Badge>
+                  )}
+                  {submission.nft_contract && (
+                    <Badge className="bg-purple-100 text-purple-800 text-xs">NFT</Badge>
+                  )}
+                </div>
               </div>
               
               {submission.description && (
@@ -266,23 +278,56 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
                   Üye başına pay: {(submission.price / totalMembers).toFixed(4)} ETH
                 </div>
               )}
-              
-              {submission.nft_contract && (
-                <div className="mt-2 pt-2 border-t">
-                  <a
-                    href={`https://opensea.io/assets/ethereum/${submission.nft_contract}/${submission.nft_token_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                  >
-                    OpenSea'da Görüntüle <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              )}
+
+              {/* NFT Actions */}
+              <div className="space-y-2 pt-2 border-t">
+                {!submission.nft_contract ? (
+                  // Show mint button if not yet minted and user is the submitter
+                  submission.submitter_id === user?.id && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleMintNFT(submission)}
+                      className="w-full text-xs"
+                    >
+                      <Coins className="w-3 h-3 mr-1" />
+                      NFT Olarak Mintle
+                    </Button>
+                  )
+                ) : (
+                  // Show NFT info and OpenSea link if minted
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-500">
+                      <p>Token ID: {submission.nft_token_id}</p>
+                    </div>
+                    <a
+                      href={`https://opensea.io/assets/ethereum/${submission.nft_contract}/${submission.nft_token_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    >
+                      OpenSea'da Görüntüle <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* NFT Mint Modal */}
+      {selectedSubmission && (
+        <NFTMintModal
+          isOpen={showMintModal}
+          onClose={() => {
+            setShowMintModal(false);
+            setSelectedSubmission(null);
+          }}
+          submission={selectedSubmission}
+          onMintComplete={fetchSubmissions}
+        />
+      )}
     </div>
   );
 };

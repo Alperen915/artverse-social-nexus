@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      blockchain_transactions: {
+        Row: {
+          block_number: number | null
+          created_at: string | null
+          from_address: string
+          gas_price: number | null
+          gas_used: number | null
+          id: string
+          metadata: Json | null
+          status: string | null
+          to_address: string | null
+          transaction_type: string
+          tx_hash: string
+          value: number | null
+        }
+        Insert: {
+          block_number?: number | null
+          created_at?: string | null
+          from_address: string
+          gas_price?: number | null
+          gas_used?: number | null
+          id?: string
+          metadata?: Json | null
+          status?: string | null
+          to_address?: string | null
+          transaction_type: string
+          tx_hash: string
+          value?: number | null
+        }
+        Update: {
+          block_number?: number | null
+          created_at?: string | null
+          from_address?: string
+          gas_price?: number | null
+          gas_used?: number | null
+          id?: string
+          metadata?: Json | null
+          status?: string | null
+          to_address?: string | null
+          transaction_type?: string
+          tx_hash?: string
+          value?: number | null
+        }
+        Relationships: []
+      }
       communities: {
         Row: {
           cover_image: string | null
@@ -321,6 +366,103 @@ export type Database = {
             columns: ["proposal_id"]
             isOneToOne: false
             referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nft_listings: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          listing_hash: string | null
+          marketplace: string
+          mint_id: string | null
+          price: number
+          seller_address: string
+          status: string | null
+          transaction_hash: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          listing_hash?: string | null
+          marketplace: string
+          mint_id?: string | null
+          price: number
+          seller_address: string
+          status?: string | null
+          transaction_hash?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          listing_hash?: string | null
+          marketplace?: string
+          mint_id?: string | null
+          price?: number
+          seller_address?: string
+          status?: string | null
+          transaction_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_listings_mint_id_fkey"
+            columns: ["mint_id"]
+            isOneToOne: false
+            referencedRelation: "nft_mints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nft_mints: {
+        Row: {
+          contract_address: string
+          gas_price: number | null
+          gas_used: number | null
+          id: string
+          metadata_uri: string | null
+          mint_date: string | null
+          minter_address: string
+          status: string | null
+          submission_id: string | null
+          token_id: string
+          transaction_hash: string
+        }
+        Insert: {
+          contract_address: string
+          gas_price?: number | null
+          gas_used?: number | null
+          id?: string
+          metadata_uri?: string | null
+          mint_date?: string | null
+          minter_address: string
+          status?: string | null
+          submission_id?: string | null
+          token_id: string
+          transaction_hash: string
+        }
+        Update: {
+          contract_address?: string
+          gas_price?: number | null
+          gas_used?: number | null
+          id?: string
+          metadata_uri?: string | null
+          mint_date?: string | null
+          minter_address?: string
+          status?: string | null
+          submission_id?: string | null
+          token_id?: string
+          transaction_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_mints_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_submissions"
             referencedColumns: ["id"]
           },
         ]

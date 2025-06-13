@@ -5,7 +5,9 @@ import { VotingSection } from '@/components/voting/VotingSection';
 import { NFTSalesTracker } from '@/components/revenue/NFTSalesTracker';
 import { GalleryManager } from '@/components/gallery/GalleryManager';
 import { EventsSection } from '@/components/events/EventsSection';
-import { Vote, DollarSign, ImageIcon, Calendar } from 'lucide-react';
+import { NFTMarketplace } from '@/components/nft/NFTMarketplace';
+import { BlockchainTransactions } from '@/components/nft/BlockchainTransactions';
+import { Vote, DollarSign, ImageIcon, Calendar, ShoppingCart, Activity } from 'lucide-react';
 
 interface CommunityTabsProps {
   communityId: string;
@@ -14,7 +16,7 @@ interface CommunityTabsProps {
 export const CommunityTabs = ({ communityId }: CommunityTabsProps) => {
   return (
     <Tabs defaultValue="governance" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-5">
+      <TabsList className="grid w-full grid-cols-7">
         <TabsTrigger value="governance" className="flex items-center gap-2">
           <Vote className="w-4 h-4" />
           Yönetim
@@ -22,6 +24,14 @@ export const CommunityTabs = ({ communityId }: CommunityTabsProps) => {
         <TabsTrigger value="galleries" className="flex items-center gap-2">
           <ImageIcon className="w-4 h-4" />
           Galeriler
+        </TabsTrigger>
+        <TabsTrigger value="nft-marketplace" className="flex items-center gap-2">
+          <ShoppingCart className="w-4 h-4" />
+          NFT Market
+        </TabsTrigger>
+        <TabsTrigger value="blockchain" className="flex items-center gap-2">
+          <Activity className="w-4 h-4" />
+          Blockchain
         </TabsTrigger>
         <TabsTrigger value="events" className="flex items-center gap-2">
           <Calendar className="w-4 h-4" />
@@ -43,6 +53,14 @@ export const CommunityTabs = ({ communityId }: CommunityTabsProps) => {
 
       <TabsContent value="galleries">
         <GalleryManager communityId={communityId} />
+      </TabsContent>
+
+      <TabsContent value="nft-marketplace">
+        <NFTMarketplace galleryId={communityId} />
+      </TabsContent>
+
+      <TabsContent value="blockchain">
+        <BlockchainTransactions galleryId={communityId} />
       </TabsContent>
 
       <TabsContent value="events">
