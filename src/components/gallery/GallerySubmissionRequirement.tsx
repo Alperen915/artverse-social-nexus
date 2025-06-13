@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +17,7 @@ interface MemberSubmissionStatus {
   profiles?: {
     username: string;
     display_name: string;
-  };
+  } | null;
 }
 
 export const GallerySubmissionRequirement = ({ 
@@ -35,21 +34,26 @@ export const GallerySubmissionRequirement = ({
 
   const fetchMemberSubmissionStatus = async () => {
     try {
-      // Get all community members
+      // Get all community members with their profile information
       const { data: members, error: membersError } = await supabase
         .from('community_memberships')
-        .select(`
-          user_id,
-          profiles (
-            username,
-            display_name
-          )
-        `)
+        .select('user_id')
         .eq('community_id', communityId);
 
       if (membersError) {
         console.error('Error fetching members:', membersError);
         return;
+      }
+
+      // Get profile information for all members
+      const memberIds = members?.map(m => m.user_id) || [];
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, display_name')
+        .in('id', memberIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
       }
 
       // Get all submissions for this gallery
@@ -65,11 +69,17 @@ export const GallerySubmissionRequirement = ({
 
       const submitterIds = new Set(submissions?.map(s => s.submitter_id) || []);
 
-      const statuses = members?.map(member => ({
-        user_id: member.user_id,
-        has_submitted: submitterIds.has(member.user_id),
-        profiles: member.profiles
-      })) || [];
+      const statuses = members?.map(member => {
+        const profile = profiles?.find(p => p.id === member.user_id);
+        return {
+          user_id: member.user_id,
+          has_submitted: submitterIds.has(member.user_id),
+          profiles: profile ? {
+            username: profile.username || '',
+            display_name: profile.display_name || ''
+          } : null
+        };
+      }) || [];
 
       setMemberStatuses(statuses);
     } catch (error) {
