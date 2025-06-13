@@ -80,35 +80,35 @@ const Profile = () => {
     if (!profileId) return;
 
     try {
-      // Communities joined - using simpler query approach
-      const communitiesQuery = await supabase
+      // Fetch communities count
+      const communitiesResponse = await supabase
         .from('community_memberships')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('user_id', profileId);
 
-      // Galleries participated
-      const galleriesQuery = await supabase
+      // Fetch galleries count
+      const galleriesResponse = await supabase
         .from('gallery_submissions')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('submitter_id', profileId);
 
-      // Proposals created
-      const proposalsQuery = await supabase
+      // Fetch proposals count
+      const proposalsResponse = await supabase
         .from('proposals')
-        .select('*', { count: 'exact', head: true })
-        .eq('proposer_id', profileId);
+        .select('id')
+        .eq('creator_id', profileId);
 
-      // Events attended (RSVP'd)
-      const eventsQuery = await supabase
+      // Fetch events count
+      const eventsResponse = await supabase
         .from('event_rsvps')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('user_id', profileId);
 
       setStats({
-        communitiesJoined: communitiesQuery.count || 0,
-        galleriesParticipated: galleriesQuery.count || 0,
-        proposalsCreated: proposalsQuery.count || 0,
-        eventsAttended: eventsQuery.count || 0,
+        communitiesJoined: communitiesResponse.data?.length || 0,
+        galleriesParticipated: galleriesResponse.data?.length || 0,
+        proposalsCreated: proposalsResponse.data?.length || 0,
+        eventsAttended: eventsResponse.data?.length || 0,
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
