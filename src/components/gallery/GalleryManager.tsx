@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { CreateGalleryProposalModal } from './CreateGalleryProposalModal';
 import { SubmitArtworkModal } from './SubmitArtworkModal';
 import { GallerySubmissions } from './GallerySubmissions';
+import { GallerySubmissionRequirement } from './GallerySubmissionRequirement';
 import { RevenueDistribution } from './RevenueDistribution';
 import { ImageIcon, Plus, Calendar, DollarSign, Users } from 'lucide-react';
 
@@ -122,8 +123,9 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
         <ul className="text-sm text-blue-700 space-y-1">
           <li>• Topluluk üyeleri galeri önerisi oluşturabilir</li>
           <li>• Galeri önerisi topluluk oylamasından geçmelidir</li>
-          <li>• Onaylanan galerilere her üye en az bir eser göndermelidir</li>
-          <li>• Satışlardan elde edilen gelir tüm üyeler arasında eşit dağıtılır</li>
+          <li>• <strong>Onaylanan galerilere her üye ZORUNLU olarak en az bir eser göndermelidir</strong></li>
+          <li>• Satışlardan elde edilen gelir TÜM topluluk üyeleri arasında eşit dağıtılır</li>
+          <li>• Eser göndermemiş üyeler de gelir paylaşımından faydalanır</li>
         </ul>
       </div>
 
@@ -161,19 +163,24 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
               </CardHeader>
 
               <CardContent>
-                <Tabs defaultValue="submissions" className="space-y-4">
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      Son Tarih: {new Date(gallery.submission_deadline).toLocaleDateString('tr-TR')}
-                    </div>
-                    <div className="flex items-center">
-                      <DollarSign className="w-4 h-4 mr-1" />
-                      Toplam Gelir: {gallery.total_revenue} ETH
-                    </div>
+                <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    Son Tarih: {new Date(gallery.submission_deadline).toLocaleDateString('tr-TR')}
                   </div>
+                  <div className="flex items-center">
+                    <DollarSign className="w-4 h-4 mr-1" />
+                    Toplam Gelir: {gallery.total_revenue} ETH
+                  </div>
+                </div>
 
-                  {gallery.status === 'active' && (
+                {gallery.status === 'active' && (
+                  <>
+                    <GallerySubmissionRequirement 
+                      galleryId={gallery.id} 
+                      communityId={communityId}
+                    />
+                    
                     <div className="flex gap-2 mb-4">
                       <Button
                         onClick={() => handleSubmitArtwork(gallery)}
@@ -182,8 +189,10 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
                         Eser Gönder
                       </Button>
                     </div>
-                  )}
+                  </>
+                )}
 
+                <Tabs defaultValue="submissions" className="space-y-4">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="submissions" className="flex items-center gap-2">
                       <ImageIcon className="w-4 h-4" />

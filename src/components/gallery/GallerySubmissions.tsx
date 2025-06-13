@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Info } from 'lucide-react';
 
 interface GallerySubmissionsProps {
   galleryId: string;
@@ -25,10 +27,12 @@ interface Submission {
 export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalMembers, setTotalMembers] = useState(0);
   const { user } = useAuth();
 
   useEffect(() => {
     fetchSubmissions();
+    fetchTotalMembers();
   }, [galleryId]);
 
   const fetchSubmissions = async () => {
@@ -51,9 +55,39 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
     }
   };
 
+  const fetchTotalMembers = async () => {
+    try {
+      // Get community ID from gallery
+      const { data: gallery, error: galleryError } = await supabase
+        .from('nft_galleries')
+        .select('community_id')
+        .eq('id', galleryId)
+        .single();
+
+      if (galleryError) {
+        console.error('Error fetching gallery:', galleryError);
+        return;
+      }
+
+      // Get total community members
+      const { data: members, error: membersError } = await supabase
+        .from('community_memberships')
+        .select('user_id', { count: 'exact' })
+        .eq('community_id', gallery.community_id);
+
+      if (membersError) {
+        console.error('Error fetching members:', membersError);
+      } else {
+        setTotalMembers(members?.length || 0);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   const distributeRevenue = async (salePrice: number, communityId: string) => {
     try {
-      // Get all community members
+      // Get all community members (not just those who submitted)
       const { data: members, error: membersError } = await supabase
         .from('community_memberships')
         .select('user_id')
@@ -82,7 +116,7 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
         if (distributionError) {
           console.error('Error creating revenue distributions:', distributionError);
         } else {
-          console.log(`Revenue distributed: ${sharePerMember} ETH to each of ${members.length} members`);
+          console.log(`Revenue distributed: ${sharePerMember.toFixed(4)} ETH to each of ${members.length} members`);
         }
       }
     } catch (error) {
@@ -147,7 +181,8 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
         console.error('Error updating gallery revenue:', revenueError);
       }
 
-      alert(`Purchase successful! Revenue (${submission.price} ETH) distributed equally among all community members.`);
+      const sharePerMember = submission.price / totalMembers;
+      alert(`Satın alma başarılı! Gelir (${submission.price} ETH) ${totalMembers} topluluk üyesi arasında eşit dağıtıldı. Her üyenin payı: ${sharePerMember.toFixed(4)} ETH`);
       fetchSubmissions();
     } catch (error) {
       console.error('Error:', error);
@@ -176,9 +211,14 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
   return (
     <div className="space-y-4">
       <h4 className="font-semibold text-gray-900">Gönderilen Eserler ({submissions.length})</h4>
-      <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
-        <p><strong>Gelir Dağıtımı:</strong> Her satıştan elde edilen gelir, topluluk üyeleri arasında eşit olarak dağıtılır.</p>
-      </div>
+      
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Gelir Dağıtımı:</strong> Her satıştan elde edilen gelir, topluluk içindeki TÜM üyeler ({totalMembers} kişi) arasında eşit olarak dağıtılır. Eser göndermemiş üyeler de pay alır.
+        </AlertDescription>
+      </Alert>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {submissions.map((submission) => (
           <Card key={submission.id} className="overflow-hidden">
@@ -208,7 +248,7 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
                 </p>
               )}
               
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-sm">{submission.price} ETH</span>
                 {!submission.sold && (
                   <Button
@@ -220,6 +260,12 @@ export const GallerySubmissions = ({ galleryId }: GallerySubmissionsProps) => {
                   </Button>
                 )}
               </div>
+
+              {totalMembers > 0 && (
+                <div className="text-xs text-gray-500 mb-2">
+                  Üye başına pay: {(submission.price / totalMembers).toFixed(4)} ETH
+                </div>
+              )}
               
               {submission.nft_contract && (
                 <div className="mt-2 pt-2 border-t">
