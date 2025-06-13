@@ -9,6 +9,7 @@ import CommunityDetail from "./pages/CommunityDetail";
 import Gallery from "./pages/Gallery";
 import Governance from "./pages/Governance";
 import Events from "./pages/Events";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,8 @@ const App = () => (
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/governance" element={<Governance />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:id" element={<Profile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
