@@ -28,6 +28,9 @@ const Profile = () => {
     handleSaveProfile,
   } = useProfileData(profileId, user?.id);
 
+  // If user is viewing their own profile but no profile exists, show create form
+  const shouldShowCreateForm = isOwnProfile && !loading && !profile && user;
+
   const handleSave = async () => {
     const success = await handleSaveProfile();
     if (success) {
@@ -50,7 +53,7 @@ const Profile = () => {
     );
   }
 
-  if (!profile) {
+  if (!profile && !shouldShowCreateForm) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -73,25 +76,56 @@ const Profile = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* Profile Header */}
-          <ProfileHeader 
-            profile={profile}
-            isOwnProfile={isOwnProfile}
-            onEditClick={() => setEditing(!editing)}
-          />
+          {shouldShowCreateForm ? (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center mb-6">
+                  <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    Profilinizi Oluşturun
+                  </h2>
+                  <p className="text-gray-600">
+                    Topluluk deneyiminizi kişiselleştirmek için profilinizi tamamlayın
+                  </p>
+                </div>
+                <ProfileEditForm
+                  editForm={editForm}
+                  onFormChange={updateEditForm}
+                  onSave={handleSave}
+                  onCancel={() => {}}
+                />
+              </CardContent>
+            </Card>
+          ) : profile ? (
+            <>
+              {/* Profile Header */}
+              <ProfileHeader 
+                profile={profile}
+                isOwnProfile={isOwnProfile}
+                onEditClick={() => setEditing(!editing)}
+              />
 
-          {/* Edit Profile Form */}
-          {editing && isOwnProfile && (
+              {/* Edit Profile Form */}
+              {editing && isOwnProfile && (
+                <ProfileEditForm
+                  editForm={editForm}
+                  onFormChange={updateEditForm}
+                  onSave={handleSave}
+                  onCancel={() => setEditing(false)}
+                />
+              )}
+
+              {/* User Stats */}
+              <UserStatsComponent stats={stats} />
+            </>
+          ) : (
             <ProfileEditForm
               editForm={editForm}
               onFormChange={updateEditForm}
               onSave={handleSave}
-              onCancel={() => setEditing(false)}
+              onCancel={() => {}}
             />
           )}
-
-          {/* User Stats */}
-          <UserStatsComponent stats={stats} />
         </div>
       </main>
 

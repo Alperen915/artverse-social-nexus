@@ -34,19 +34,26 @@ const Gallery = () => {
         .from('nft_galleries')
         .select(`
           *,
-          communities (name, id),
-          gallery_submissions (count)
+          communities!left (name, id),
+          gallery_submissions!left (id)
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching galleries:', error);
+        setGalleries([]);
       } else {
-        setGalleries(data || []);
+        // Process galleries with submission count
+        const galleriesWithCounts = (data || []).map(gallery => ({
+          ...gallery,
+          gallery_submissions: [{ count: gallery.gallery_submissions?.length || 0 }]
+        }));
+        setGalleries(galleriesWithCounts);
       }
     } catch (error) {
       console.error('Error:', error);
+      setGalleries([]);
     } finally {
       setLoading(false);
     }

@@ -36,18 +36,25 @@ export const EventsSection = ({ communityId }: EventsSectionProps) => {
         .from('events')
         .select(`
           *,
-          event_rsvps(count)
+          event_rsvps!left(id)
         `)
         .eq('community_id', communityId)
         .order('event_date', { ascending: true });
 
       if (error) {
         console.error('Error fetching events:', error);
+        setEvents([]);
       } else {
-        setEvents(data || []);
+        // Process events with RSVP count
+        const eventsWithCounts = (data || []).map(event => ({
+          ...event,
+          event_rsvps: [{ count: event.event_rsvps?.length || 0 }]
+        }));
+        setEvents(eventsWithCounts);
       }
     } catch (error) {
       console.error('Error:', error);
+      setEvents([]);
     } finally {
       setLoading(false);
     }

@@ -42,11 +42,18 @@ export const GallerySubmissionRequirement = ({
 
       if (membersError) {
         console.error('Error fetching members:', membersError);
+        setMemberStatuses([]);
         return;
       }
 
       // Get profile information for all members
       const memberIds = members?.map(m => m.user_id) || [];
+      
+      if (memberIds.length === 0) {
+        setMemberStatuses([]);
+        return;
+      }
+      
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, username, display_name')
@@ -64,6 +71,7 @@ export const GallerySubmissionRequirement = ({
 
       if (submissionsError) {
         console.error('Error fetching submissions:', submissionsError);
+        setMemberStatuses([]);
         return;
       }
 
@@ -84,6 +92,7 @@ export const GallerySubmissionRequirement = ({
       setMemberStatuses(statuses);
     } catch (error) {
       console.error('Error:', error);
+      setMemberStatuses([]);
     } finally {
       setLoading(false);
     }

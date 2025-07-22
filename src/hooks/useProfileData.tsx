@@ -52,7 +52,10 @@ export const useProfileData = (profileId: string | undefined, userId: string | u
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        if (error.code !== 'PGRST116') { // Not found error is expected for new users
+          console.error('Error fetching profile:', error);
+        }
+        setProfile(null);
       } else {
         setProfile(data);
         setEditForm({
@@ -63,6 +66,7 @@ export const useProfileData = (profileId: string | undefined, userId: string | u
       }
     } catch (error) {
       console.error('Error:', error);
+      setProfile(null);
     }
   };
 

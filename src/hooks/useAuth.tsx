@@ -13,6 +13,12 @@ export const useAuth = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         setUser(session?.user ?? null);
+        
+        // Create profile if user exists but no profile
+        if (session?.user) {
+          await ensureProfile(session.user);
+        }
+        
         setLoading(false);
       } catch (error) {
         console.error('Error getting session:', error);
@@ -24,15 +30,47 @@ export const useAuth = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth event:', event, session?.user?.email);
         setUser(session?.user ?? null);
+        
+        // Create profile for new users
+        if (event === 'SIGNED_IN' && session?.user) {
+          await ensureProfile(session.user);
+        }
+        
         setLoading(false);
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const ensureProfile = async (user: User) => {
+    try {
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (!existingProfile) {
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            username: user.email?.split('@')[0] || '',
+            display_name: user.user_metadata?.full_name || '',
+          });
+
+        if (error) {
+          console.error('Error creating profile:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error ensuring profile:', error);
+    }
+  };
 
   const signUp = async (email: string, password: string) => {
     try {

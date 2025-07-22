@@ -37,17 +37,20 @@ export const RevenueDistribution = ({ galleryId }: RevenueDistributionProps) => 
         .select('*')
         .eq('gallery_id', galleryId)
         .eq('member_id', user.id)
-        .order('distributed_at', { ascending: false });
+      const { data: members, error: membersError } = await supabase
 
-      if (error) {
+        .select('user_id')
         console.error('Error fetching distributions:', error);
       } else {
         setDistributions(data || []);
         const total = (data || []).reduce((sum, dist) => sum + Number(dist.amount), 0);
+        setTotalMembers(0);
+        setTotalMembers(0);
         setTotalEarnings(total);
       }
     } catch (error) {
       console.error('Error:', error);
+      setTotalMembers(0);
     } finally {
       setLoading(false);
     }

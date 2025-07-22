@@ -25,42 +25,57 @@ export const PlatformStats = () => {
   const fetchStats = async () => {
     try {
       // Fetch community count
-      const { count: communitiesCount } = await supabase
+      const { data: communities, error: communitiesError } = await supabase
         .from('communities')
-        .select('*', { count: 'exact', head: true });
+        .select('id');
 
       // Fetch total members count
-      const { count: membersCount } = await supabase
+      const { data: members, error: membersError } = await supabase
         .from('community_memberships')
-        .select('*', { count: 'exact', head: true });
+        .select('id');
 
       // Fetch active galleries count
-      const { count: galleriesCount } = await supabase
+      const { data: galleries, error: galleriesError } = await supabase
         .from('nft_galleries')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('status', 'active');
 
       // Fetch active proposals count
-      const { count: proposalsCount } = await supabase
+      const { data: proposals, error: proposalsError } = await supabase
         .from('proposals')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('status', 'active');
 
       // Fetch upcoming events count
-      const { count: eventsCount } = await supabase
+      const { data: events, error: eventsError } = await supabase
         .from('events')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .gte('event_date', new Date().toISOString());
 
+      // Handle any errors
+      if (communitiesError) console.error('Error fetching communities:', communitiesError);
+      if (membersError) console.error('Error fetching members:', membersError);
+      if (galleriesError) console.error('Error fetching galleries:', galleriesError);
+      if (proposalsError) console.error('Error fetching proposals:', proposalsError);
+      if (eventsError) console.error('Error fetching events:', eventsError);
+
       setStats({
-        totalCommunities: communitiesCount || 0,
-        totalMembers: membersCount || 0,
-        activeGalleries: galleriesCount || 0,
-        activeProposals: proposalsCount || 0,
-        upcomingEvents: eventsCount || 0,
+        totalCommunities: communities?.length || 0,
+        totalMembers: members?.length || 0,
+        activeGalleries: galleries?.length || 0,
+        activeProposals: proposals?.length || 0,
+        upcomingEvents: events?.length || 0,
       });
     } catch (error) {
       console.error('Error fetching platform stats:', error);
+      // Set default values on error
+      setStats({
+        totalCommunities: 0,
+        totalMembers: 0,
+        activeGalleries: 0,
+        activeProposals: 0,
+        upcomingEvents: 0,
+      });
     } finally {
       setLoading(false);
     }

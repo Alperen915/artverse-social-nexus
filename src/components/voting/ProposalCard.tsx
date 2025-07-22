@@ -33,13 +33,13 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
   // Check if voting has ended and process result if needed
   useEffect(() => {
     const checkAndProcessResult = async () => {
-      if (proposal.status === 'active' && new Date() >= new Date(proposal.voting_end)) {
+      if (proposal.status === 'active' && proposal.voting_end && new Date() >= new Date(proposal.voting_end)) {
         await processProposalResult();
       }
     };
 
     checkAndProcessResult();
-  }, [proposal]);
+  }, [proposal.id, proposal.status, proposal.voting_end]);
 
   const processProposalResult = async () => {
     if (processingResult) return;

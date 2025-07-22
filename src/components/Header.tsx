@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
 import { AuthModal } from './auth/AuthModal';
 import { CreateCommunityModal } from './modals/CreateCommunityModal';
+import { NotificationBell } from './notifications/NotificationBell';
 import { LogOut, Plus, Wallet } from 'lucide-react';
 
 const Header = () => {
@@ -112,6 +113,7 @@ const Header = () => {
               </Button>
 
               {/* Auth Actions */}
+              {user && <NotificationBell />}
               {user ? (
                 <Button
                   variant="ghost"

@@ -35,18 +35,20 @@ const Governance = () => {
         .from('proposals')
         .select(`
           *,
-          communities (name, id)
+          communities!left (name, id)
         `)
         .order('created_at', { ascending: false })
         .limit(20);
 
       if (error) {
         console.error('Error fetching proposals:', error);
+        setProposals([]);
       } else {
         setProposals(data || []);
       }
     } catch (error) {
       console.error('Error:', error);
+      setProposals([]);
     } finally {
       setLoading(false);
     }

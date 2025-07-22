@@ -36,22 +36,31 @@ const CommunityGrid = () => {
         .from('communities')
         .select(`
           *,
-          community_memberships(count)
+          community_memberships!inner(count)
         `)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching communities:', error);
+        // Show fallback data or empty state
+        setCommunities([]);
       } else {
         // Process the data to include member count
-        const communitiesWithCounts = data?.map(community => ({
-          ...community,
-          member_count: community.community_memberships?.[0]?.count || 0
-        })) || [];
+        const communitiesWithCounts = data?.map(community => {
+          // Count memberships manually since aggregate might not work
+          const memberCount = Array.isArray(community.community_memberships) 
+            ? community.community_memberships.length 
+            : 0;
+          return {
+            ...community,
+            member_count: memberCount
+          };
+        }) || [];
         setCommunities(communitiesWithCounts);
       }
     } catch (error) {
       console.error('Error:', error);
+      setCommunities([]);
     } finally {
       setLoading(false);
     }
