@@ -37,9 +37,6 @@ export const RevenueDistribution = ({ galleryId }: RevenueDistributionProps) => 
         .select('*')
         .eq('gallery_id', galleryId)
         .eq('member_id', user.id);
-      const { data: members, error: membersError } = await supabase
-        .from('gallery_members')
-        .select('user_id');
 
       if (error) {
         console.error('Error fetching distributions:', error);
