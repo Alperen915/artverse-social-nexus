@@ -1,12 +1,14 @@
-
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Users, Crown, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Users, Eye, UserPlus, Shield } from 'lucide-react';
+import { DAOCard } from '@/components/dao/DAOCard';
+import { ArtverseTransferModal } from '@/components/dao/ArtverseTransferModal';
+import { TokenBalanceDisplay } from '@/components/dao/TokenBalanceDisplay';
 
 interface Community {
   id: string;
@@ -18,17 +20,22 @@ interface Community {
   cover_image: string | null;
   created_at: string;
   member_count?: number;
+  is_dao: boolean;
+  bros_chain_address: string | null;
+  membership_token_requirement: number;
+  membership_is_free: boolean;
+  dao_treasury_balance: number;
+  artverse_status: 'local' | 'transferring' | 'transferred';
 }
 
-const CommunityGrid = () => {
+export const CommunityGrid = () => {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userTokenBalance, setUserTokenBalance] = useState(0);
+  const [selectedDAO, setSelectedDAO] = useState<Community | null>(null);
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchCommunities();
-  }, []);
 
   const fetchCommunities = async () => {
     try {
@@ -36,39 +43,61 @@ const CommunityGrid = () => {
         .from('communities')
         .select(`
           *,
-          community_memberships!inner(count)
-        `)
-        .order('created_at', { ascending: false });
+          community_memberships(count)
+        `);
 
       if (error) {
         console.error('Error fetching communities:', error);
-        // Show fallback data or empty state
-        setCommunities([]);
       } else {
-        // Process the data to include member count
-        const communitiesWithCounts = data?.map(community => {
-          // Count memberships manually since aggregate might not work
-          const memberCount = Array.isArray(community.community_memberships) 
-            ? community.community_memberships.length 
-            : 0;
-          return {
-            ...community,
-            member_count: memberCount
-          };
-        }) || [];
-        setCommunities(communitiesWithCounts);
+        const communitiesWithCount = data?.map(community => ({
+          ...community,
+          member_count: community.community_memberships?.[0]?.count || 0,
+          artverse_status: (community.artverse_status || 'local') as 'local' | 'transferring' | 'transferred'
+        })) || [];
+        setCommunities(communitiesWithCount);
       }
     } catch (error) {
       console.error('Error:', error);
-      setCommunities([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchUserTokenBalance = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_token_balances')
+        .select('balance')
+        .eq('user_id', user.id)
+        .eq('token_symbol', 'BROS')
+        .single();
+
+      if (!error && data) {
+        setUserTokenBalance(data.balance);
+      }
+    } catch (error) {
+      console.error('Error fetching token balance:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCommunities();
+    if (user) {
+      fetchUserTokenBalance();
+    }
+  }, [user]);
+
   const joinCommunity = async (communityId: string) => {
     if (!user) {
       alert('Please sign in to join communities');
+      return;
+    }
+
+    const community = communities.find(c => c.id === communityId);
+    if (community && !community.membership_is_free && userTokenBalance < community.membership_token_requirement) {
+      alert(`Bu DAO'ya katılmak için ${community.membership_token_requirement} BROS token gerekiyor. Mevcut bakiyeniz: ${userTokenBalance} BROS`);
       return;
     }
 
@@ -87,8 +116,8 @@ const CommunityGrid = () => {
           alert('You are already a member of this community');
         }
       } else {
-        alert('Successfully joined the community!');
-        fetchCommunities(); // Refresh to update member count
+        alert('Successfully joined the DAO!');
+        fetchCommunities();
       }
     } catch (error) {
       console.error('Error:', error);
@@ -99,110 +128,67 @@ const CommunityGrid = () => {
     navigate(`/community/${communityId}`);
   };
 
-  if (loading) {
-    return (
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Loading Communities...
-            </h2>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const handleTransferToArtverse = (daoId: string) => {
+    const dao = communities.find(c => c.id === daoId);
+    if (dao) {
+      setSelectedDAO(dao);
+      setShowTransferModal(true);
+    }
+  };
+
+  const handleTransferComplete = () => {
+    fetchCommunities();
+    setShowTransferModal(false);
+    setSelectedDAO(null);
+  };
 
   return (
-    <section className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Discover Art Communities
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Join token-gated communities, participate in governance, and connect with artists worldwide
-          </p>
-        </div>
-
-        {communities.length === 0 ? (
-          <div className="text-center py-12">
-            <h3 className="text-2xl font-semibold text-gray-700 mb-4">
-              No communities yet
-            </h3>
-            <p className="text-gray-600 mb-8">
-              Be the first to create a community and start building your artistic collective!
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {communities.map((community) => (
-              <Card key={community.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
-                <div className="h-48 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 rounded-t-lg relative overflow-hidden">
-                  {community.cover_image ? (
-                    <img 
-                      src={community.cover_image} 
-                      alt={community.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-pink-600/20" />
-                  )}
-                  <div className="absolute top-4 right-4">
-                    {community.token_gate_contract && (
-                      <Badge variant="secondary" className="bg-white/90 text-purple-700">
-                        <Crown className="w-3 h-3 mr-1" />
-                        Token Gated
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
-                    {community.name}
-                  </CardTitle>
-                  <CardDescription className="text-gray-600 line-clamp-2">
-                    {community.description || 'A vibrant community of digital artists and collectors.'}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="pt-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Users className="w-4 h-4 mr-1" />
-                      {community.member_count} members
-                    </div>
-                    {community.token_gate_threshold && (
-                      <div className="text-xs text-purple-600 font-medium">
-                        Min {community.token_gate_threshold} NFT{community.token_gate_threshold > 1 ? 's' : ''}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => joinCommunity(community.id)}
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                    >
-                      Join Community
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="px-4"
-                      onClick={() => viewCommunity(community.id)}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold mb-4">DAO Communities</h2>
+        <p className="text-muted-foreground">
+          Bros Chain üzerindeki DAO topluluklarını keşfedin ve katılın
+        </p>
       </div>
-    </section>
+
+      {/* Token Balance Display */}
+      <div className="max-w-md mx-auto">
+        <TokenBalanceDisplay />
+      </div>
+
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">DAO'lar yükleniyor...</p>
+        </div>
+      ) : communities.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Henüz DAO bulunamadı. İlk DAO'yu siz oluşturun!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {communities.map((community) => (
+            <DAOCard
+              key={community.id}
+              dao={community}
+              userTokenBalance={userTokenBalance}
+              onJoin={joinCommunity}
+              onView={viewCommunity}
+              onTransferToArtverse={handleTransferToArtverse}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Artverse Transfer Modal */}
+      {selectedDAO && (
+        <ArtverseTransferModal
+          isOpen={showTransferModal}
+          onClose={() => setShowTransferModal(false)}
+          dao={selectedDAO}
+          onTransferComplete={handleTransferComplete}
+        />
+      )}
+    </div>
   );
 };
-
-export default CommunityGrid;

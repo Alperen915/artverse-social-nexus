@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      artverse_transfers: {
+        Row: {
+          artverse_dao_id: string | null
+          bros_chain_tx_hash: string | null
+          community_id: string | null
+          completion_date: string | null
+          id: string
+          initiated_by: string | null
+          metadata: Json | null
+          transfer_date: string | null
+          transfer_status: string | null
+        }
+        Insert: {
+          artverse_dao_id?: string | null
+          bros_chain_tx_hash?: string | null
+          community_id?: string | null
+          completion_date?: string | null
+          id?: string
+          initiated_by?: string | null
+          metadata?: Json | null
+          transfer_date?: string | null
+          transfer_status?: string | null
+        }
+        Update: {
+          artverse_dao_id?: string | null
+          bros_chain_tx_hash?: string | null
+          community_id?: string | null
+          completion_date?: string | null
+          id?: string
+          initiated_by?: string | null
+          metadata?: Json | null
+          transfer_date?: string | null
+          transfer_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artverse_transfers_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artverse_transfers_initiated_by_fkey"
+            columns: ["initiated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blockchain_transactions: {
         Row: {
           block_number: number | null
@@ -61,45 +112,69 @@ export type Database = {
       }
       communities: {
         Row: {
+          artverse_status: string | null
+          artverse_transfer_date: string | null
+          bros_chain_address: string | null
+          bros_chain_network: string | null
           cover_image: string | null
           created_at: string | null
           creator_id: string | null
+          dao_treasury_balance: number | null
           description: string | null
           genesis_nft_collection: string | null
           genesis_nft_contract: string | null
           governance_token_contract: string | null
           id: string
           ipfs_metadata: string | null
+          is_dao: boolean | null
+          membership_is_free: boolean | null
+          membership_token_requirement: number | null
           name: string
           token_gate_contract: string | null
           token_gate_threshold: number | null
           updated_at: string | null
         }
         Insert: {
+          artverse_status?: string | null
+          artverse_transfer_date?: string | null
+          bros_chain_address?: string | null
+          bros_chain_network?: string | null
           cover_image?: string | null
           created_at?: string | null
           creator_id?: string | null
+          dao_treasury_balance?: number | null
           description?: string | null
           genesis_nft_collection?: string | null
           genesis_nft_contract?: string | null
           governance_token_contract?: string | null
           id?: string
           ipfs_metadata?: string | null
+          is_dao?: boolean | null
+          membership_is_free?: boolean | null
+          membership_token_requirement?: number | null
           name: string
           token_gate_contract?: string | null
           token_gate_threshold?: number | null
           updated_at?: string | null
         }
         Update: {
+          artverse_status?: string | null
+          artverse_transfer_date?: string | null
+          bros_chain_address?: string | null
+          bros_chain_network?: string | null
           cover_image?: string | null
           created_at?: string | null
           creator_id?: string | null
+          dao_treasury_balance?: number | null
           description?: string | null
           genesis_nft_collection?: string | null
           genesis_nft_contract?: string | null
           governance_token_contract?: string | null
           id?: string
           ipfs_metadata?: string | null
+          is_dao?: boolean | null
+          membership_is_free?: boolean | null
+          membership_token_requirement?: number | null
           name?: string
           token_gate_contract?: string | null
           token_gate_threshold?: number | null
@@ -793,6 +868,44 @@ export type Database = {
             columns: ["gallery_id"]
             isOneToOne: false
             referencedRelation: "nft_galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_token_balances: {
+        Row: {
+          balance: number
+          chain_name: string
+          created_at: string | null
+          id: string
+          token_symbol: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          balance?: number
+          chain_name?: string
+          created_at?: string | null
+          id?: string
+          token_symbol?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          balance?: number
+          chain_name?: string
+          created_at?: string | null
+          id?: string
+          token_symbol?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_token_balances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
