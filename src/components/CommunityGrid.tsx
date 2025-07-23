@@ -28,7 +28,7 @@ interface Community {
   artverse_status: 'local' | 'transferring' | 'transferred';
 }
 
-export const CommunityGrid = () => {
+const CommunityGrid = () => {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [userTokenBalance, setUserTokenBalance] = useState(0);
@@ -192,3 +192,5 @@ export const CommunityGrid = () => {
     </div>
   );
 };
+
+export default CommunityGrid;
