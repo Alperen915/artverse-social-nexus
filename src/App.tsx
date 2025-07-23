@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Marketplace from "./pages/Marketplace";
 import CommunityDetail from "./pages/CommunityDetail";
 import Gallery from "./pages/Gallery";
 import Governance from "./pages/Governance";
@@ -22,6 +23,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/community/:id" element={<CommunityDetail />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/governance" element={<Governance />} />

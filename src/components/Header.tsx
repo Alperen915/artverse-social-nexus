@@ -75,6 +75,9 @@ const Header = () => {
               <Link to="/" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Communities
               </Link>
+              <Link to="/marketplace" className="text-gray-700 hover:text-purple-600 transition-colors">
+                NFT Marketplace
+              </Link>
               <Link to="/gallery" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Gallery
               </Link>
