@@ -167,9 +167,20 @@ export const PublicNFTMarketplace = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <ShoppingCart className="w-6 h-6 text-purple-600" />
-        <h1 className="text-3xl font-bold text-gray-900">Herkese Açık NFT Marketplace</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShoppingCart className="w-6 h-6 text-purple-600" />
+          <h1 className="text-3xl font-bold text-gray-900">Herkese Açık NFT Marketplace</h1>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => window.history.back()}
+          className="flex items-center gap-2"
+        >
+          <ExternalLink className="w-4 h-4 rotate-180" />
+          Çıkış
+        </Button>
       </div>
 
       <div className="bg-blue-50 p-4 rounded-lg">

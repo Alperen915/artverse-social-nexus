@@ -5,9 +5,11 @@ import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Users, MapPin, ExternalLink } from 'lucide-react';
+import { Calendar, Users, MapPin, ExternalLink, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { PublicCreateEventModal } from '@/components/events/PublicCreateEventModal';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Event {
   id: string;
@@ -28,6 +30,8 @@ interface Event {
 const Events = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const { user } = useAuth();
 
   const fetchEvents = async () => {
     try {
@@ -111,12 +115,25 @@ const Events = () => {
       
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Etkinlikler
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Topluluklar tarafından düzenlenen etkinlikleri keşfedin
-          </p>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Etkinlikler
+              </h1>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Topluluklar tarafından düzenlenen etkinlikleri keşfedin
+              </p>
+            </div>
+            {user && (
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Etkinlik Oluştur
+              </Button>
+            )}
+          </div>
         </div>
 
         {events.length === 0 ? (
@@ -194,6 +211,12 @@ const Events = () => {
       </main>
 
       <Footer />
+      
+      <PublicCreateEventModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)}
+        onEventCreated={fetchEvents}
+      />
     </div>
   );
 };
