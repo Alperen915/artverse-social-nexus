@@ -6,7 +6,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
-import { ShoppingCart, ExternalLink, Coins, AlertCircle, Wallet } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ShoppingCart, ExternalLink, Coins, AlertCircle, Wallet, ArrowLeft } from 'lucide-react';
 
 interface PublicNFTListing {
   id: string;
@@ -40,6 +41,7 @@ export const PublicNFTMarketplace = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { address, isConnected, connectWallet } = useWallet();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchListings();
@@ -175,11 +177,11 @@ export const PublicNFTMarketplace = () => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => window.history.back()}
+          onClick={() => navigate('/')}
           className="flex items-center gap-2"
         >
-          <ExternalLink className="w-4 h-4 rotate-180" />
-          Çıkış
+          <ArrowLeft className="w-4 h-4" />
+          Ana Sayfa
         </Button>
       </div>
 
