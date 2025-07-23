@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       blockchain_transactions: {
@@ -266,6 +271,47 @@ export type Database = {
           },
         ]
       }
+      gallery_submission_requirements: {
+        Row: {
+          created_at: string | null
+          current_submissions: number | null
+          gallery_id: string | null
+          id: string
+          is_compliant: boolean | null
+          required_submissions: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_submissions?: number | null
+          gallery_id?: string | null
+          id?: string
+          is_compliant?: boolean | null
+          required_submissions?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_submissions?: number | null
+          gallery_id?: string | null
+          id?: string
+          is_compliant?: boolean | null
+          required_submissions?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_submission_requirements_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "nft_galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery_submissions: {
         Row: {
           description: string | null
@@ -322,6 +368,8 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          mandatory_submission: boolean | null
+          min_submissions_per_member: number | null
           proposal_id: string | null
           status: string | null
           submission_deadline: string | null
@@ -334,6 +382,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          mandatory_submission?: boolean | null
+          min_submissions_per_member?: number | null
           proposal_id?: string | null
           status?: string | null
           submission_deadline?: string | null
@@ -346,6 +396,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          mandatory_submission?: boolean | null
+          min_submissions_per_member?: number | null
           proposal_id?: string | null
           status?: string | null
           submission_deadline?: string | null
@@ -612,6 +664,60 @@ export type Database = {
           },
         ]
       }
+      public_nft_marketplace: {
+        Row: {
+          buyer_address: string | null
+          created_at: string | null
+          id: string
+          mint_id: string | null
+          price: number
+          seller_address: string
+          sold_at: string | null
+          status: string | null
+          submission_id: string | null
+          transaction_hash: string | null
+        }
+        Insert: {
+          buyer_address?: string | null
+          created_at?: string | null
+          id?: string
+          mint_id?: string | null
+          price: number
+          seller_address: string
+          sold_at?: string | null
+          status?: string | null
+          submission_id?: string | null
+          transaction_hash?: string | null
+        }
+        Update: {
+          buyer_address?: string | null
+          created_at?: string | null
+          id?: string
+          mint_id?: string | null
+          price?: number
+          seller_address?: string
+          sold_at?: string | null
+          status?: string | null
+          submission_id?: string | null
+          transaction_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_nft_marketplace_mint_id_fkey"
+            columns: ["mint_id"]
+            isOneToOne: false
+            referencedRelation: "nft_mints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_nft_marketplace_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       revenue_distributions: {
         Row: {
           amount: number
@@ -640,6 +746,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "revenue_distributions_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "nft_galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_payouts: {
+        Row: {
+          amount: number
+          created_at: string | null
+          gallery_id: string | null
+          id: string
+          paid_at: string | null
+          payout_address: string
+          status: string | null
+          transaction_hash: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          gallery_id?: string | null
+          id?: string
+          paid_at?: string | null
+          payout_address: string
+          status?: string | null
+          transaction_hash?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          gallery_id?: string | null
+          id?: string
+          paid_at?: string | null
+          payout_address?: string
+          status?: string | null
+          transaction_hash?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_payouts_gallery_id_fkey"
             columns: ["gallery_id"]
             isOneToOne: false
             referencedRelation: "nft_galleries"
@@ -693,7 +843,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      distribute_gallery_revenue: {
+        Args: { gallery_id_param: string }
+        Returns: {
+          user_id: string
+          payout_amount: number
+        }[]
+      }
     }
     Enums: {
       community_role: "admin" | "curator" | "member" | "viewer"
@@ -707,21 +863,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -739,14 +899,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -762,14 +924,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -785,14 +949,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -800,14 +966,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
