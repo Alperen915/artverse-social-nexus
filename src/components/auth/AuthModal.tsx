@@ -67,9 +67,17 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       } else {
         console.log('Auth successful:', data);
         if (isSignUp) {
-          setSuccess('Account created successfully! You can now sign in.');
-          setEmail('');
-          setPassword('');
+          // Check if user has session (auto-confirm enabled)
+          if (data.session) {
+            setSuccess('Account created and signed in successfully!');
+            setTimeout(() => {
+              onClose();
+            }, 1000);
+          } else {
+            setSuccess('Account created successfully! You can now sign in.');
+            setEmail('');
+            setPassword('');
+          }
         } else {
           setSuccess('Successfully signed in!');
           setTimeout(() => {
