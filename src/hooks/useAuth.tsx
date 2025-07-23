@@ -90,6 +90,7 @@ export const useAuth = () => {
         return { data: null, error };
       }
       
+      console.log('SignUp successful:', data);
       return { data, error: null };
     } catch (error) {
       console.error('SignUp exception:', error);
