@@ -30,16 +30,17 @@ export const useAuth = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth event:', event, session?.user?.email);
+      (event, session) => {
+        console.log('Auth event:', event, session?.user?.email || 'No session');
         setUser(session?.user ?? null);
-        
-        // Create profile for new users
-        if (event === 'SIGNED_IN' && session?.user) {
-          await ensureProfile(session.user);
-        }
-        
         setLoading(false);
+        
+        // Create profile for new users (defer to avoid blocking)
+        if (event === 'SIGNED_IN' && session?.user) {
+          setTimeout(() => {
+            ensureProfile(session.user);
+          }, 0);
+        }
       }
     );
 
