@@ -739,6 +739,83 @@ export type Database = {
           },
         ]
       }
+      public_event_rsvps: {
+        Row: {
+          email: string | null
+          event_id: string | null
+          id: string
+          name: string | null
+          rsvp_at: string | null
+          user_id: string | null
+          wallet_address: string | null
+        }
+        Insert: {
+          email?: string | null
+          event_id?: string | null
+          id?: string
+          name?: string | null
+          rsvp_at?: string | null
+          user_id?: string | null
+          wallet_address?: string | null
+        }
+        Update: {
+          email?: string | null
+          event_id?: string | null
+          id?: string
+          name?: string | null
+          rsvp_at?: string | null
+          user_id?: string | null
+          wallet_address?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "public_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_events: {
+        Row: {
+          cover_image: string | null
+          created_at: string | null
+          description: string | null
+          event_date: string
+          host_id: string | null
+          id: string
+          max_attendees: number | null
+          status: string | null
+          title: string
+          venue_or_link: string | null
+        }
+        Insert: {
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          event_date: string
+          host_id?: string | null
+          id?: string
+          max_attendees?: number | null
+          status?: string | null
+          title: string
+          venue_or_link?: string | null
+        }
+        Update: {
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          event_date?: string
+          host_id?: string | null
+          id?: string
+          max_attendees?: number | null
+          status?: string | null
+          title?: string
+          venue_or_link?: string | null
+        }
+        Relationships: []
+      }
       public_nft_marketplace: {
         Row: {
           buyer_address: string | null

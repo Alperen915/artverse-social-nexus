@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import Hero from '@/components/Hero';
 import CommunityGrid from '@/components/CommunityGrid';
 import { PlatformStats } from '@/components/stats/PlatformStats';
+import { PublicEventsSection } from '@/components/events/PublicEventsSection';
 
 const Index = () => {
   return (
@@ -37,6 +38,11 @@ const Index = () => {
         </div>
 
         <CommunityGrid />
+
+        {/* Public Events Section */}
+        <div className="mt-16">
+          <PublicEventsSection />
+        </div>
       </main>
 
       <Footer />
