@@ -99,7 +99,8 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
 
     setVoting(true);
     try {
-      const { error } = await supabase
+      // Insert the vote
+      const { error: voteError } = await supabase
         .from('votes')
         .insert({
           proposal_id: proposal.id,
@@ -108,22 +109,79 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
           voting_power: 1,
         });
 
-      if (error) {
-        console.error('Error voting:', error);
-        if (error.code === '23505') {
+      if (voteError) {
+        console.error('Error voting:', voteError);
+        if (voteError.code === '23505') {
           alert('You have already voted on this proposal');
         } else {
           alert('Failed to submit vote');
         }
-      } else {
-        alert('Vote submitted successfully!');
-        onVoteUpdate();
+        return;
       }
+
+      // Update the proposal vote counts
+      const { error: updateError } = await supabase
+        .from('proposals')
+        .update({
+          yes_votes: proposal.yes_votes + (voteChoice ? 1 : 0),
+          no_votes: proposal.no_votes + (voteChoice ? 0 : 1),
+        })
+        .eq('id', proposal.id);
+
+      if (updateError) {
+        console.error('Error updating proposal counts:', updateError);
+      }
+
+      // Check for majority (simulate community size of 10 for now)
+      const totalVotes = proposal.yes_votes + proposal.no_votes + 1; // +1 for current vote
+      const yesVotes = proposal.yes_votes + (voteChoice ? 1 : 0);
+      const noVotes = proposal.no_votes + (voteChoice ? 0 : 1);
+      
+      // If more than 60% votes are collected and majority is clear
+      if (totalVotes >= 6) { // 60% of 10 members
+        const passed = yesVotes > noVotes;
+        await processImmediateResult(passed);
+      }
+
+      alert('Vote submitted successfully!');
+      onVoteUpdate();
     } catch (error) {
       console.error('Error:', error);
       alert('Failed to submit vote');
     } finally {
       setVoting(false);
+    }
+  };
+
+  const processImmediateResult = async (passed: boolean) => {
+    const newStatus = passed ? 'passed' : 'rejected';
+    
+    // Update proposal status
+    const { error: proposalError } = await supabase
+      .from('proposals')
+      .update({ status: newStatus })
+      .eq('id', proposal.id);
+
+    if (proposalError) {
+      console.error('Error updating proposal status:', proposalError);
+      return;
+    }
+
+    // If it's a gallery proposal and it passed, activate the gallery
+    if (proposal.proposal_type === 'gallery' && passed) {
+      const { error: galleryError } = await supabase
+        .from('nft_galleries')
+        .update({ status: 'active' })
+        .eq('proposal_id', proposal.id);
+
+      if (galleryError) {
+        console.error('Error activating gallery:', galleryError);
+      } else {
+        // Simulate NFT minting and marketplace listing
+        setTimeout(() => {
+          alert('🎉 Gallery approved! NFTs are being minted and will be available in the marketplace soon!');
+        }, 1000);
+      }
     }
   };
 
@@ -236,7 +294,7 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
           {/* Status Messages */}
           {proposal.status === 'passed' && proposal.proposal_type === 'gallery' && (
             <div className="bg-green-50 p-3 rounded-lg text-sm text-green-800">
-              <p><strong>Gallery Approved!</strong> Members can now submit their artwork. Check the Gallery tab.</p>
+              <p><strong>Gallery Approved!</strong> NFTs are being minted and will appear in the marketplace. Check the Gallery tab to see submissions.</p>
             </div>
           )}
 

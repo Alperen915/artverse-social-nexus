@@ -39,7 +39,7 @@ export const SubmitArtworkModal = ({ isOpen, onClose, gallery, onSubmissionCompl
 
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('gallery_submissions')
         .insert({
           gallery_id: gallery.id,
@@ -50,7 +50,9 @@ export const SubmitArtworkModal = ({ isOpen, onClose, gallery, onSubmissionCompl
           price: parseFloat(formData.price),
           nft_contract: formData.nftContract || null,
           nft_token_id: formData.nftTokenId || null,
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Error submitting artwork:', error);
@@ -60,7 +62,11 @@ export const SubmitArtworkModal = ({ isOpen, onClose, gallery, onSubmissionCompl
           alert('Eser gönderimi başarısız oldu');
         }
       } else {
-        alert('Eser başarıyla gönderildi!');
+        // Simulate NFT minting
+        const submissionId = data.id;
+        await simulateNFTMinting(submissionId);
+        
+        alert('Eser başarıyla gönderildi! NFT mint ediliyor ve marketplace\'e ekleniyor...');
         onSubmissionComplete();
         onClose();
         setFormData({
@@ -77,6 +83,45 @@ export const SubmitArtworkModal = ({ isOpen, onClose, gallery, onSubmissionCompl
       alert('Eser gönderimi başarısız oldu');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const simulateNFTMinting = async (submissionId: string) => {
+    try {
+      // Simulate NFT minting
+      const { data: mintData, error: mintError } = await supabase
+        .from('nft_mints')
+        .insert({
+          submission_id: submissionId,
+          minter_address: `0x${Math.random().toString(16).substr(2, 40)}`, // Simulated address
+          contract_address: `0x${Math.random().toString(16).substr(2, 40)}`, // Simulated contract
+          token_id: Math.floor(Math.random() * 10000).toString(),
+          transaction_hash: `0x${Math.random().toString(16).substr(2, 64)}`, // Simulated tx hash
+          metadata_uri: `ipfs://Qm${Math.random().toString(36).substr(2, 44)}`, // Simulated IPFS
+          status: 'completed',
+        })
+        .select()
+        .single();
+
+      if (!mintError && mintData) {
+        // Add to public marketplace
+        await supabase
+          .from('public_nft_marketplace')
+          .insert({
+            submission_id: submissionId,
+            mint_id: mintData.id,
+            price: parseFloat(formData.price),
+            seller_address: `0x${Math.random().toString(16).substr(2, 40)}`, // Simulated seller
+            status: 'active',
+          });
+
+        // Show success notification after a delay
+        setTimeout(() => {
+          alert('🎉 NFT başarıyla mint edildi ve marketplace\'e eklendi!');
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error simulating NFT minting:', error);
     }
   };
 
