@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Coins, Wallet, RefreshCw, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
 
 interface TokenBalance {
   id: string;
@@ -136,8 +137,9 @@ export const TokenBalanceDisplay = () => {
               </Button>
               <Button
                 size="sm"
-                onClick={simulateTokenEarn}
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                onClick={() => toast({ title: "Bilgi", description: "Token kazanma sistemi geliştirilme aşamasında" })}
+                disabled
+                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 opacity-50"
               >
                 <Coins className="w-4 h-4 mr-1" />
                 Token Kazan
@@ -156,8 +158,9 @@ export const TokenBalanceDisplay = () => {
             </p>
             <Button
               size="sm"
-              onClick={simulateTokenEarn}
-              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+              onClick={() => toast({ title: "Bilgi", description: "Token kazanma sistemi geliştirilme aşamasında" })}
+              disabled
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 opacity-50"
             >
               <Coins className="w-4 h-4 mr-1" />
               İlk Tokenları Al

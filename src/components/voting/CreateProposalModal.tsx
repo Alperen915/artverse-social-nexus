@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -18,6 +19,7 @@ export const CreateProposalModal = ({ isOpen, onClose, communityId }: CreateProp
     title: '',
     description: '',
     proposalType: 'general',
+    votingDays: 7,
   });
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -29,7 +31,7 @@ export const CreateProposalModal = ({ isOpen, onClose, communityId }: CreateProp
     setLoading(true);
     try {
       const votingEnd = new Date();
-      votingEnd.setDate(votingEnd.getDate() + 7); // 7 days voting period
+      votingEnd.setDate(votingEnd.getDate() + Math.min(formData.votingDays, 14));
 
       const { error } = await supabase
         .from('proposals')
@@ -47,7 +49,7 @@ export const CreateProposalModal = ({ isOpen, onClose, communityId }: CreateProp
         alert('Failed to create proposal');
       } else {
         onClose();
-        setFormData({ title: '', description: '', proposalType: 'general' });
+        setFormData({ title: '', description: '', proposalType: 'general', votingDays: 7 });
         alert('Proposal created successfully!');
       }
     } catch (error) {
@@ -81,21 +83,42 @@ export const CreateProposalModal = ({ isOpen, onClose, communityId }: CreateProp
             required
           />
           
+          <div>
+            <Label htmlFor="votingDays">Voting Duration (max 14 days)</Label>
+            <Input
+              id="votingDays"
+              type="number"
+              min="1"
+              max="14"
+              value={formData.votingDays}
+              onChange={(e) => setFormData({ ...formData, votingDays: Math.min(14, Number(e.target.value)) })}
+              required
+            />
+          </div>
+
           <select
             value={formData.proposalType}
             onChange={(e) => setFormData({ ...formData, proposalType: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="general">General</option>
             <option value="treasury">Treasury</option>
             <option value="governance">Governance</option>
             <option value="membership">Membership</option>
             <option value="gallery">NFT Gallery</option>
+            <option value="public_event">Public Event Participation</option>
           </select>
           
           {formData.proposalType === 'gallery' && (
             <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
               <p><strong>Note:</strong> Use the "Propose Gallery" button in the Gallery tab for better gallery creation experience.</p>
+            </div>
+          )}
+
+          
+          {formData.proposalType === 'public_event' && (
+            <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
+              <p><strong>Note:</strong> This proposal will allow the DAO to participate in a public event as a group.</p>
             </div>
           )}
 

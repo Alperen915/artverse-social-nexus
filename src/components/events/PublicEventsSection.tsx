@@ -26,6 +26,7 @@ export const PublicEventsSection = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [rsvpData, setRsvpData] = useState<{ [key: string]: { email: string; name: string } }>({});
+  const [userCommunities, setUserCommunities] = useState<any[]>([]);
   const { user } = useAuth();
 
   const fetchEvents = async () => {
@@ -50,61 +51,54 @@ export const PublicEventsSection = () => {
     }
   };
 
+  const fetchUserCommunities = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('community_memberships')
+        .select(`
+          community_id,
+          communities (
+            id,
+            name,
+            is_dao
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (!error && data) {
+        setUserCommunities(data.filter(membership => membership.communities?.is_dao));
+      }
+    } catch (error) {
+      console.error('Error fetching user communities:', error);
+    }
+  };
+
   useEffect(() => {
     fetchEvents();
-  }, []);
+    fetchUserCommunities();
+  }, [user]);
 
-  const handleRSVP = async (eventId: string) => {
-    const data = rsvpData[eventId];
-    
-    if (!data?.email || !data?.name) {
+  const handleDAORSVP = async (eventId: string, daoId: string) => {
+    if (!user) {
       toast({
-        title: "Eksik Bilgi",
-        description: "Lütfen email ve isim bilgilerinizi girin",
+        title: "Giriş Gerekli",
+        description: "DAO olarak katılmak için giriş yapmalısınız",
         variant: "destructive",
       });
       return;
     }
 
-    try {
-      const { error } = await supabase
-        .from('public_event_rsvps')
-        .insert({
-          event_id: eventId,
-          user_id: user?.id || null,
-          email: data.email,
-          name: data.name
-        });
-
-      if (error) {
-        console.error('Error RSVPing to event:', error);
-        toast({
-          title: "Hata",
-          description: "RSVP işlemi başarısız oldu",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Başarılı",
-          description: "Etkinliğe kaydolunuz!",
-        });
-        fetchEvents();
-        setRsvpData(prev => ({ ...prev, [eventId]: { email: '', name: '' } }));
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    // This would normally check if there's an approved proposal for this event participation
+    // For now, we'll simulate it
+    toast({
+      title: "DAO Katılımı",
+      description: "DAO olarak etkinliğe katılım için önce toplulukta oylama yapılmalıdır",
+      variant: "destructive",
+    });
   };
 
-  const updateRsvpData = (eventId: string, field: 'email' | 'name', value: string) => {
-    setRsvpData(prev => ({
-      ...prev,
-      [eventId]: {
-        ...prev[eventId],
-        [field]: value
-      }
-    }));
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -211,29 +205,36 @@ export const PublicEventsSection = () => {
                     )}
                   </div>
                   
-                  {event.status === 'upcoming' && (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="text"
-                        placeholder="İsminiz"
-                        value={rsvpData[event.id]?.name || ''}
-                        onChange={(e) => updateRsvpData(event.id, 'name', e.target.value)}
-                        className="w-32"
-                      />
-                      <Input
-                        type="email"
-                        placeholder="Email"
-                        value={rsvpData[event.id]?.email || ''}
-                        onChange={(e) => updateRsvpData(event.id, 'email', e.target.value)}
-                        className="w-40"
-                      />
-                      <Button 
-                        onClick={() => handleRSVP(event.id)}
-                        size="sm"
-                      >
-                        <Mail className="w-4 h-4 mr-1" />
-                        RSVP
-                      </Button>
+                  {event.status === 'upcoming' && userCommunities.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-muted-foreground">DAO olarak katılın:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {userCommunities.map((membership) => (
+                          <Button
+                            key={membership.community_id}
+                            onClick={() => handleDAORSVP(event.id, membership.community_id)}
+                            size="sm"
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            {membership.communities.name} ile Katıl
+                          </Button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        DAO olarak katılım için önce toplulukta oylama yapılmalıdır
+                      </p>
+                    </div>
+                  )}
+
+                  {event.status === 'upcoming' && userCommunities.length === 0 && (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground">
+                        Herkese açık etkinliklere sadece DAO'lar oylamayla katılabilir
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Bir DAO'ya üye olun veya kendi DAO'nuzu oluşturun
+                      </p>
                     </div>
                   )}
                 </div>
