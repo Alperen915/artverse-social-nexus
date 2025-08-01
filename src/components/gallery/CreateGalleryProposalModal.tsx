@@ -19,6 +19,7 @@ export const CreateGalleryProposalModal = ({ isOpen, onClose, communityId }: Cre
     title: '',
     description: '',
     submissionDeadlineDays: '14',
+    proposalCost: '100',
   });
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -75,7 +76,7 @@ export const CreateGalleryProposalModal = ({ isOpen, onClose, communityId }: Cre
 
       alert('Gallery proposal created successfully! Community members can now vote.');
       onClose();
-      setFormData({ title: '', description: '', submissionDeadlineDays: '14' });
+      setFormData({ title: '', description: '', submissionDeadlineDays: '14', proposalCost: '100' });
     } catch (error) {
       console.error('Error:', error);
       alert('Failed to create gallery proposal');
@@ -127,6 +128,21 @@ export const CreateGalleryProposalModal = ({ isOpen, onClose, communityId }: Cre
               required
             />
           </div>
+
+          <div>
+            <Label htmlFor="proposalCost">Proposal Cost (BROS Tokens)</Label>
+            <Input
+              id="proposalCost"
+              type="number"
+              min="1"
+              value={formData.proposalCost}
+              onChange={(e) => setFormData({ ...formData, proposalCost: e.target.value })}
+              required
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Bu miktar DAO hazinesine eklenecek ve galeri başarılı olursa geri ödenecek
+            </p>
+          </div>
           
           <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
             <p><strong>Note:</strong> If this proposal passes:</p>
@@ -139,10 +155,10 @@ export const CreateGalleryProposalModal = ({ isOpen, onClose, communityId }: Cre
 
           <Button 
             type="submit" 
-            disabled={loading || !formData.title || !formData.description}
+            disabled={loading || !formData.title || !formData.description || !formData.proposalCost}
             className="w-full"
           >
-            {loading ? 'Creating Proposal...' : 'Create Gallery Proposal'}
+            {loading ? 'Creating Proposal...' : `Create Gallery Proposal (${formData.proposalCost} BROS)`}
           </Button>
         </form>
       </DialogContent>

@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { AlertCircle, CheckCircle } from 'lucide-react';
@@ -23,6 +25,8 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
     genesisNftContract: '',
     tokenGateContract: '',
     tokenGateThreshold: 1,
+    membershipIsFree: true,
+    membershipTokenRequirement: 0,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +61,9 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
         token_gate_contract: formData.tokenGateContract.trim() || null,
         token_gate_threshold: formData.tokenGateThreshold || 1,
         creator_id: user.id,
+        membership_is_free: formData.membershipIsFree,
+        membership_token_requirement: formData.membershipIsFree ? 0 : formData.membershipTokenRequirement,
+        is_dao: !formData.membershipIsFree,
       };
 
       console.log('Submitting community data:', communityData);
@@ -83,6 +90,8 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
           genesisNftContract: '',
           tokenGateContract: '',
           tokenGateThreshold: 1,
+          membershipIsFree: true,
+          membershipTokenRequirement: 0,
         });
         
         // Close modal after a brief delay to show success
@@ -108,6 +117,8 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
       genesisNftContract: '',
       tokenGateContract: '',
       tokenGateThreshold: 1,
+      membershipIsFree: true,
+      membershipTokenRequirement: 0,
     });
     setError(null);
     setSuccess(false);
@@ -199,6 +210,44 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
             min={1}
             disabled={loading}
           />
+
+          <div className="space-y-4 border-t pt-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="membership-type" className="text-sm font-medium">
+                Ücretsiz Üyelik
+              </Label>
+              <Switch
+                id="membership-type"
+                checked={formData.membershipIsFree}
+                onCheckedChange={(checked) => setFormData({ 
+                  ...formData, 
+                  membershipIsFree: checked,
+                  membershipTokenRequirement: checked ? 0 : formData.membershipTokenRequirement
+                })}
+                disabled={loading}
+              />
+            </div>
+            
+            {!formData.membershipIsFree && (
+              <div className="space-y-2">
+                <Label htmlFor="token-requirement" className="text-sm font-medium">
+                  Bros Chain Token Gereksinimi (DAO Hazinesine Gidecek)
+                </Label>
+                <Input
+                  id="token-requirement"
+                  type="number"
+                  placeholder="Gerekli BROS token miktarı"
+                  value={formData.membershipTokenRequirement}
+                  onChange={(e) => setFormData({ ...formData, membershipTokenRequirement: Number(e.target.value) })}
+                  min={1}
+                  disabled={loading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Üyeler bu miktarı ödeyerek topluluk DAO hazinesine katkıda bulunacaklar
+                </p>
+              </div>
+            )}
+          </div>
           
           <Button 
             type="submit" 
