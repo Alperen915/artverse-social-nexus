@@ -90,13 +90,43 @@ export const PublicEventsSection = () => {
       return;
     }
 
-    // This would normally check if there's an approved proposal for this event participation
-    // For now, we'll simulate it
-    toast({
-      title: "DAO Katılımı",
-      description: "DAO olarak etkinliğe katılım için önce toplulukta oylama yapılmalıdır",
-      variant: "destructive",
-    });
+    try {
+      // Create a proposal for event participation
+      const event = events.find(e => e.id === eventId);
+      if (!event) return;
+
+      const { error } = await supabase
+        .from('proposals')
+        .insert({
+          community_id: daoId,
+          creator_id: user.id,
+          title: `${event.title} Etkinliğine Katılım`,
+          description: `DAO olarak "${event.title}" etkinliğine katılmak için oylama. Etkinlik tarihi: ${new Date(event.event_date).toLocaleDateString('tr-TR')}`,
+          proposal_type: 'event_participation',
+          voting_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+        });
+
+      if (error) {
+        console.error('Error creating proposal:', error);
+        toast({
+          title: "Hata",
+          description: "Oylama oluşturulamadı",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Oylama Oluşturuldu",
+          description: "Etkinliğe katılım için oylama başlatıldı. Topluluk sayfasından oy verebilirsiniz.",
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Hata",
+        description: "Bir hata oluştu",
+        variant: "destructive",
+      });
+    }
   };
 
 

@@ -119,17 +119,22 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
         return;
       }
 
-      // Update the proposal vote counts
-      const { error: updateError } = await supabase
-        .from('proposals')
-        .update({
-          yes_votes: proposal.yes_votes + (voteChoice ? 1 : 0),
-          no_votes: proposal.no_votes + (voteChoice ? 0 : 1),
-        })
-        .eq('id', proposal.id);
+      // Update the proposal vote counts using RPC function
+      const { error: updateError } = await supabase.rpc('increment_vote_count', {
+        proposal_id: proposal.id,
+        is_yes_vote: voteChoice
+      });
 
       if (updateError) {
         console.error('Error updating proposal counts:', updateError);
+        // Fallback to direct update
+        await supabase
+          .from('proposals')
+          .update({
+            yes_votes: proposal.yes_votes + (voteChoice ? 1 : 0),
+            no_votes: proposal.no_votes + (voteChoice ? 0 : 1),
+          })
+          .eq('id', proposal.id);
       }
 
       // Check for majority (simulate community size of 10 for now)
