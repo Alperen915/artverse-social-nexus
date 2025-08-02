@@ -46,6 +46,27 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
       return;
     }
 
+    // Check if user has enough tokens for gas fee when creating DAO
+    const isDao = !formData.membershipIsFree;
+    const gasFee = 50; // 50 BROS tokens for DAO creation gas fee
+    let userBalance: any = null;
+    
+    if (isDao) {
+      const { data } = await supabase
+        .from('user_token_balances')
+        .select('balance')
+        .eq('user_id', user.id)
+        .eq('token_symbol', 'BROS')
+        .single();
+      
+      userBalance = data;
+      
+      if (!userBalance || userBalance.balance < gasFee) {
+        setError(`DAO oluşturmak için yeterli BROS token yok. Gerekli: ${gasFee} BROS (gaz ücreti)`);
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
     
@@ -63,7 +84,8 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
         creator_id: user.id,
         membership_is_free: formData.membershipIsFree,
         membership_token_requirement: formData.membershipIsFree ? 0 : formData.membershipTokenRequirement,
-        is_dao: !formData.membershipIsFree,
+        is_dao: isDao,
+        dao_treasury_balance: isDao ? gasFee : 0, // Gas fee goes to DAO treasury
       };
 
       console.log('Submitting community data:', communityData);
@@ -79,6 +101,38 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
         setError(`Failed to create community: ${error.message}`);
       } else {
         console.log('Community created successfully:', data);
+        
+        // Deduct gas fee from user balance if DAO is created
+        if (isDao) {
+          await supabase
+            .from('user_token_balances')
+            .update({ 
+              balance: Number(userBalance?.balance || 0) - gasFee,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id)
+            .eq('token_symbol', 'BROS');
+          
+          // Simulate blockchain transaction for gas fee
+          await supabase
+            .from('blockchain_transactions')
+            .insert({
+              tx_hash: `0x${Math.random().toString(16).substr(2, 40)}`,
+              from_address: `0x${Math.random().toString(16).substr(2, 40)}`,
+              to_address: `0x${Math.random().toString(16).substr(2, 40)}`,
+              value: gasFee,
+              gas_used: 21000,
+              gas_price: 2000000000,
+              transaction_type: 'dao_creation_gas',
+              status: 'confirmed',
+              metadata: {
+                community_id: data.id,
+                community_name: data.name,
+                gas_fee: gasFee
+              }
+            });
+        }
+        
         setSuccess(true);
         
         // Reset form
