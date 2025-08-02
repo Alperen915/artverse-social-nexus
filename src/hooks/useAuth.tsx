@@ -66,6 +66,16 @@ export const useAuth = () => {
 
         if (error) {
           console.error('Error creating profile:', error);
+        } else {
+          // Create initial token balance for new users
+          await supabase
+            .from('user_token_balances')
+            .insert({
+              user_id: user.id,
+              balance: 1000, // Give new users 1000 BROS tokens to start
+              token_symbol: 'BROS',
+              chain_name: 'Bros Chain'
+            });
         }
       }
     } catch (error) {

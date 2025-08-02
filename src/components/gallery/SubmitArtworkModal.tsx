@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { AlertTriangle } from 'lucide-react';
+import { SimulationService } from '@/lib/simulationService';
 
 interface SubmitArtworkModalProps {
   isOpen: boolean;
@@ -56,17 +57,21 @@ export const SubmitArtworkModal = ({ isOpen, onClose, gallery, onSubmissionCompl
 
       if (error) {
         console.error('Error submitting artwork:', error);
-        if (error.code === '23505') {
-          alert('Bu galeye zaten eser gönderdiniz. Her galeri için sadece bir eser gönderebilirsiniz.');
-        } else {
-          alert('Eser gönderimi başarısız oldu');
-        }
+        alert('Eser gönderimi başarısız oldu: ' + error.message);
       } else {
-        // Simulate NFT minting
-        const submissionId = data.id;
-        await simulateNFTMinting(submissionId);
+        // Use simulation service for NFT minting
+        const mintId = await SimulationService.simulateNFTMint(data.id, parseFloat(formData.price));
         
-        alert('Eser başarıyla gönderildi! NFT mint ediliyor ve marketplace\'e ekleniyor...');
+        if (mintId) {
+          alert('Eser başarıyla gönderildi! NFT mint ediliyor ve marketplace\'e ekleniyor...');
+          // Show success notification after a delay
+          setTimeout(() => {
+            alert('🎉 NFT başarıyla mint edildi ve marketplace\'e eklendi!');
+          }, 2000);
+        } else {
+          alert('Eser gönderildi ancak NFT mint işlemi başarısız oldu');
+        }
+        
         onSubmissionComplete();
         onClose();
         setFormData({
@@ -83,45 +88,6 @@ export const SubmitArtworkModal = ({ isOpen, onClose, gallery, onSubmissionCompl
       alert('Eser gönderimi başarısız oldu');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const simulateNFTMinting = async (submissionId: string) => {
-    try {
-      // Simulate NFT minting
-      const { data: mintData, error: mintError } = await supabase
-        .from('nft_mints')
-        .insert({
-          submission_id: submissionId,
-          minter_address: `0x${Math.random().toString(16).substr(2, 40)}`, // Simulated address
-          contract_address: `0x${Math.random().toString(16).substr(2, 40)}`, // Simulated contract
-          token_id: Math.floor(Math.random() * 10000).toString(),
-          transaction_hash: `0x${Math.random().toString(16).substr(2, 64)}`, // Simulated tx hash
-          metadata_uri: `ipfs://Qm${Math.random().toString(36).substr(2, 44)}`, // Simulated IPFS
-          status: 'completed',
-        })
-        .select()
-        .single();
-
-      if (!mintError && mintData) {
-        // Add to public marketplace
-        await supabase
-          .from('public_nft_marketplace')
-          .insert({
-            submission_id: submissionId,
-            mint_id: mintData.id,
-            price: parseFloat(formData.price),
-            seller_address: `0x${Math.random().toString(16).substr(2, 40)}`, // Simulated seller
-            status: 'active',
-          });
-
-        // Show success notification after a delay
-        setTimeout(() => {
-          alert('🎉 NFT başarıyla mint edildi ve marketplace\'e eklendi!');
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Error simulating NFT minting:', error);
     }
   };
 

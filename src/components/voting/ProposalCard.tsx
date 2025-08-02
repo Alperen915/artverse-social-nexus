@@ -149,7 +149,8 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
       }
 
       alert('Vote submitted successfully!');
-      onVoteUpdate();
+      // Force immediate data refresh instead of just calling callback
+      window.location.reload();
     } catch (error) {
       console.error('Error:', error);
       alert('Failed to submit vote');

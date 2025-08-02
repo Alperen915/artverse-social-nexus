@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { SimulationService } from '@/lib/simulationService';
 
 interface CreateCommunityModalProps {
   isOpen: boolean;
@@ -48,8 +49,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
 
     // Check if user has enough tokens for gas fee when creating DAO
     const isDao = !formData.membershipIsFree;
-    const gasFee = 50; // 50 BROS tokens for DAO creation gas fee
-    let userBalance: any = null;
+    const gasFee = SimulationService.GAS_FEES.DAO_CREATION;
     
     if (isDao) {
       const { data } = await supabase
@@ -59,9 +59,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
         .eq('token_symbol', 'BROS')
         .single();
       
-      userBalance = data;
-      
-      if (!userBalance || userBalance.balance < gasFee) {
+      if (!data || data.balance < gasFee) {
         setError(`DAO oluşturmak için yeterli BROS token yok. Gerekli: ${gasFee} BROS (gaz ücreti)`);
         return;
       }
@@ -102,35 +100,13 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
       } else {
         console.log('Community created successfully:', data);
         
-        // Deduct gas fee from user balance if DAO is created
+        // Handle DAO creation gas fee using simulation service
         if (isDao) {
-          await supabase
-            .from('user_token_balances')
-            .update({ 
-              balance: Number(userBalance?.balance || 0) - gasFee,
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', user.id)
-            .eq('token_symbol', 'BROS');
-          
-          // Simulate blockchain transaction for gas fee
-          await supabase
-            .from('blockchain_transactions')
-            .insert({
-              tx_hash: `0x${Math.random().toString(16).substr(2, 40)}`,
-              from_address: `0x${Math.random().toString(16).substr(2, 40)}`,
-              to_address: `0x${Math.random().toString(16).substr(2, 40)}`,
-              value: gasFee,
-              gas_used: 21000,
-              gas_price: 2000000000,
-              transaction_type: 'dao_creation_gas',
-              status: 'confirmed',
-              metadata: {
-                community_id: data.id,
-                community_name: data.name,
-                gas_fee: gasFee
-              }
-            });
+          const gasProcessed = await SimulationService.simulateDAOCreation(user.id, data.id, data.name);
+          if (!gasProcessed) {
+            setError('DAO oluşturuldu ancak gaz ücreti işlenemedi');
+            return;
+          }
         }
         
         setSuccess(true);
