@@ -1040,6 +1040,10 @@ export type Database = {
           payout_amount: number
         }[]
       }
+      increment_vote_count: {
+        Args: { proposal_id: string; is_yes_vote: boolean }
+        Returns: undefined
+      }
     }
     Enums: {
       community_role: "admin" | "curator" | "member" | "viewer"
