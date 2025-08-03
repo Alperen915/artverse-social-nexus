@@ -445,6 +445,7 @@ export type Database = {
           id: string
           mandatory_submission: boolean | null
           min_submissions_per_member: number | null
+          nft_price: number | null
           proposal_id: string | null
           status: string | null
           submission_deadline: string | null
@@ -459,6 +460,7 @@ export type Database = {
           id?: string
           mandatory_submission?: boolean | null
           min_submissions_per_member?: number | null
+          nft_price?: number | null
           proposal_id?: string | null
           status?: string | null
           submission_deadline?: string | null
@@ -473,6 +475,7 @@ export type Database = {
           id?: string
           mandatory_submission?: boolean | null
           min_submissions_per_member?: number | null
+          nft_price?: number | null
           proposal_id?: string | null
           status?: string | null
           submission_deadline?: string | null
@@ -785,8 +788,10 @@ export type Database = {
           event_date: string
           host_id: string | null
           id: string
+          is_paid: boolean | null
           max_attendees: number | null
           status: string | null
+          ticket_price: number | null
           title: string
           venue_or_link: string | null
         }
@@ -797,8 +802,10 @@ export type Database = {
           event_date: string
           host_id?: string | null
           id?: string
+          is_paid?: boolean | null
           max_attendees?: number | null
           status?: string | null
+          ticket_price?: number | null
           title: string
           venue_or_link?: string | null
         }
@@ -809,8 +816,10 @@ export type Database = {
           event_date?: string
           host_id?: string | null
           id?: string
+          is_paid?: boolean | null
           max_attendees?: number | null
           status?: string | null
+          ticket_price?: number | null
           title?: string
           venue_or_link?: string | null
         }
@@ -1040,8 +1049,20 @@ export type Database = {
           payout_amount: number
         }[]
       }
+      handle_dao_membership_payment: {
+        Args: {
+          community_id_param: string
+          user_id_param: string
+          fee_amount: number
+        }
+        Returns: boolean
+      }
       increment_vote_count: {
         Args: { proposal_id: string; is_yes_vote: boolean }
+        Returns: undefined
+      }
+      split_event_cost_among_dao_members: {
+        Args: { event_id_param: string; total_cost: number }
         Returns: undefined
       }
     }
