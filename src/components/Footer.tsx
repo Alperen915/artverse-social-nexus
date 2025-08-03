@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="md:col-span-2">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
-              Artverse
+              Brosverse
             </h3>
             <p className="text-gray-400 mb-6 max-w-md">
               Empowering artists through decentralized communities, NFT galleries, and DAO governance. 
@@ -53,7 +53,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between">
           <p className="text-gray-400 text-sm">
-            © 2024 Artverse. All rights reserved.
+            © 2024 Brosverse. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm text-gray-400 mt-4 md:mt-0">
             <a href="#" className="hover:text-purple-400 transition-colors">Privacy Policy</a>

@@ -130,7 +130,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold">
-            Join Artverse
+            Join Brosverse
           </DialogTitle>
           <DialogDescription className="text-center text-gray-600">
             Sign in to create communities and participate in governance

@@ -20,6 +20,7 @@ export const CreateGalleryProposalModal = ({ isOpen, onClose, communityId }: Cre
     description: '',
     submissionDeadlineDays: '14',
     proposalCost: '100',
+    nftPrice: '50',
   });
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -32,13 +33,14 @@ export const CreateGalleryProposalModal = ({ isOpen, onClose, communityId }: Cre
     try {
       const votingEnd = new Date();
       votingEnd.setDate(votingEnd.getDate() + 7); // 7 days voting period
+      votingEnd.setHours(23, 59, 59, 999); // Set to end of day
 
       // Create the proposal first
       const { data: proposal, error: proposalError } = await supabase
         .from('proposals')
         .insert({
           title: `NFT Gallery: ${formData.title}`,
-          description: `Proposal to create an NFT gallery "${formData.title}". ${formData.description}\n\nSubmission deadline: ${formData.submissionDeadlineDays} days after approval.\n\nAll community members must submit one artwork. Revenue will be shared equally among all members.`,
+          description: `Proposal to create an NFT gallery "${formData.title}". ${formData.description}\n\nSubmission deadline: ${formData.submissionDeadlineDays} days after approval.\n\nNFT Price: ${formData.nftPrice} BROS per NFT\n\nAll community members must submit one artwork. Revenue will be shared equally among all members.`,
           proposal_type: 'gallery',
           community_id: communityId,
           creator_id: user.id,
@@ -76,7 +78,7 @@ export const CreateGalleryProposalModal = ({ isOpen, onClose, communityId }: Cre
 
       alert('Gallery proposal created successfully! Community members can now vote.');
       onClose();
-      setFormData({ title: '', description: '', submissionDeadlineDays: '14', proposalCost: '100' });
+      setFormData({ title: '', description: '', submissionDeadlineDays: '14', proposalCost: '100', nftPrice: '50' });
     } catch (error) {
       console.error('Error:', error);
       alert('Failed to create gallery proposal');
@@ -143,6 +145,21 @@ export const CreateGalleryProposalModal = ({ isOpen, onClose, communityId }: Cre
               Bu miktar DAO hazinesine eklenecek ve galeri başarılı olursa geri ödenecek
             </p>
           </div>
+
+          <div>
+            <Label htmlFor="nftPrice">NFT Sale Price (BROS per NFT)</Label>
+            <Input
+              id="nftPrice"
+              type="number"
+              min="1"
+              value={formData.nftPrice}
+              onChange={(e) => setFormData({ ...formData, nftPrice: e.target.value })}
+              required
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Her NFT bu fiyattan satılacak
+            </p>
+          </div>
           
           <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
             <p><strong>Note:</strong> If this proposal passes:</p>
@@ -155,7 +172,7 @@ export const CreateGalleryProposalModal = ({ isOpen, onClose, communityId }: Cre
 
           <Button 
             type="submit" 
-            disabled={loading || !formData.title || !formData.description || !formData.proposalCost}
+            disabled={loading || !formData.title || !formData.description || !formData.proposalCost || !formData.nftPrice}
             className="w-full"
           >
             {loading ? 'Creating Proposal...' : `Create Gallery Proposal (${formData.proposalCost} BROS)`}

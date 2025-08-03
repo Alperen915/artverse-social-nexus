@@ -32,6 +32,7 @@ export const CreateProposalModal = ({ isOpen, onClose, communityId }: CreateProp
     try {
       const votingEnd = new Date();
       votingEnd.setDate(votingEnd.getDate() + Math.min(formData.votingDays, 14));
+      votingEnd.setHours(23, 59, 59, 999); // Set to end of day
 
       const { error } = await supabase
         .from('proposals')

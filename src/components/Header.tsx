@@ -66,7 +66,7 @@ const Header = () => {
             {/* Logo */}
             <div className="flex items-center">
               <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Artverse
+                Brosverse
               </Link>
             </div>
 
