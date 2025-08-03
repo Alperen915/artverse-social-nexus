@@ -89,19 +89,32 @@ const CommunityGrid = () => {
     }
   }, [user]);
 
-  const joinCommunity = async (communityId: string) => {
+  const handleJoinCommunity = async (communityId: string) => {
     if (!user) {
-      alert('Please sign in to join communities');
+      alert('Please log in to join a community');
       return;
     }
 
     const community = communities.find(c => c.id === communityId);
-    if (community && !community.membership_is_free && userTokenBalance < community.membership_token_requirement) {
-      alert(`Bu DAO'ya katılmak için ${community.membership_token_requirement} BROS token gerekiyor. Mevcut bakiyeniz: ${userTokenBalance} BROS`);
-      return;
-    }
+    if (!community) return;
 
     try {
+      // First check and handle membership fee if required
+      if (!community.membership_is_free) {
+        const { data: paymentResult, error: paymentError } = await supabase
+          .rpc('handle_dao_membership_payment', {
+            community_id_param: communityId,
+            user_id_param: user.id,
+            fee_amount: community.membership_token_requirement
+          });
+
+        if (paymentError || !paymentResult) {
+          alert(`Insufficient BROS tokens. Required: ${community.membership_token_requirement} BROS`);
+          return;
+        }
+      }
+
+      // Join the community
       const { error } = await supabase
         .from('community_memberships')
         .insert({
@@ -118,9 +131,11 @@ const CommunityGrid = () => {
       } else {
         alert('Successfully joined the DAO!');
         fetchCommunities();
+        fetchUserTokenBalance(); // Refresh balance after payment
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error joining community:', error);
+      alert('Failed to join community');
     }
   };
 
@@ -128,7 +143,7 @@ const CommunityGrid = () => {
     navigate(`/community/${communityId}`);
   };
 
-  const handleTransferToArtverse = (daoId: string) => {
+  const handleTransferToBrosverse = (daoId: string) => {
     const dao = communities.find(c => c.id === daoId);
     if (dao) {
       setSelectedDAO(dao);
@@ -172,15 +187,15 @@ const CommunityGrid = () => {
               key={community.id}
               dao={community}
               userTokenBalance={userTokenBalance}
-              onJoin={joinCommunity}
+              onJoin={handleJoinCommunity}
               onView={viewCommunity}
-              onTransferToArtverse={handleTransferToArtverse}
+              onTransferToBrosverse={handleTransferToBrosverse}
             />
           ))}
         </div>
       )}
 
-      {/* Artverse Transfer Modal */}
+      {/* Brosverse Transfer Modal */}
       {selectedDAO && (
         <ArtverseTransferModal
           isOpen={showTransferModal}

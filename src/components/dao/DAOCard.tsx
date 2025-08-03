@@ -27,7 +27,7 @@ interface DAOCardProps {
   userTokenBalance?: number;
   onJoin: (daoId: string) => void;
   onView: (daoId: string) => void;
-  onTransferToArtverse?: (daoId: string) => void;
+  onTransferToBrosverse?: (daoId: string) => void;
 }
 
 export const DAOCard = ({ 
@@ -35,11 +35,11 @@ export const DAOCard = ({
   userTokenBalance = 0, 
   onJoin, 
   onView, 
-  onTransferToArtverse 
+  onTransferToBrosverse
 }: DAOCardProps) => {
   const canJoin = dao.membership_is_free || userTokenBalance >= dao.membership_token_requirement;
   
-  const getArtverseStatusColor = (status: string) => {
+  const getBrosverseStatusColor = (status: string) => {
     switch (status) {
       case 'local': return 'bg-blue-500';
       case 'transferring': return 'bg-yellow-500';
@@ -48,11 +48,11 @@ export const DAOCard = ({
     }
   };
 
-  const getArtverseStatusText = (status: string) => {
+  const getBrosverseStatusText = (status: string) => {
     switch (status) {
       case 'local': return 'Yerel DAO';
       case 'transferring': return 'Transfer Ediliyor';
-      case 'transferred': return 'Artverse\'de';
+      case 'transferred': return 'Brosverse\'de';
       default: return 'Bilinmeyen';
     }
   };
@@ -72,9 +72,9 @@ export const DAOCard = ({
               </Badge>
             )}
             <Badge 
-              className={`text-xs text-white ${getArtverseStatusColor(dao.artverse_status)}`}
+              className={`text-xs text-white ${getBrosverseStatusColor(dao.artverse_status)}`}
             >
-              {getArtverseStatusText(dao.artverse_status)}
+              {getBrosverseStatusText(dao.artverse_status)}
             </Badge>
           </div>
         </div>
@@ -180,16 +180,16 @@ export const DAOCard = ({
           )}
         </div>
 
-        {/* Artverse Transfer Button */}
-        {dao.artverse_status === 'local' && onTransferToArtverse && (
+        {/* Brosverse Transfer Button */}
+        {dao.artverse_status === 'local' && onTransferToBrosverse && (
           <Button
-            onClick={() => onTransferToArtverse(dao.id)}
+            onClick={() => onTransferToBrosverse(dao.id)}
             variant="outline"
             size="sm"
             className="w-full border-purple-500 text-purple-600 hover:bg-purple-50"
           >
             <ExternalLink className="w-4 h-4 mr-1" />
-            Artverse'e Aktar
+            Brosverse'e Aktar
           </Button>
         )}
       </CardContent>

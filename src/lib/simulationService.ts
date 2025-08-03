@@ -212,4 +212,31 @@ export class SimulationService {
       return false;
     }
   }
+
+  // Simulate ticket purchase for public events
+  static async simulateTicketPurchase(userId: string, eventId: string, ticketPrice: number): Promise<boolean> {
+    try {
+      // Check and deduct ticket price
+      const balanceUpdated = await this.updateUserBalance(userId, ticketPrice, 'subtract');
+      
+      if (!balanceUpdated) {
+        return false;
+      }
+
+      // Create transaction record for ticket purchase
+      await this.createTransaction({
+        value: ticketPrice,
+        transaction_type: 'ticket_purchase',
+        metadata: {
+          event_id: eventId,
+          ticket_price: ticketPrice
+        }
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error simulating ticket purchase:', error);
+      return false;
+    }
+  }
 }
