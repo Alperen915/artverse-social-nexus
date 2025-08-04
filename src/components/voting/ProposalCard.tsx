@@ -142,8 +142,8 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
       const yesVotes = proposal.yes_votes + (voteChoice ? 1 : 0);
       const noVotes = proposal.no_votes + (voteChoice ? 0 : 1);
       
-      // If more than 60% votes are collected and majority is clear
-      if (totalVotes >= 6) { // 60% of 10 members
+      // If more than 50% votes are collected and majority is clear
+      if (totalVotes >= 5) { // 50% of 10 members
         const passed = yesVotes > noVotes;
         await processImmediateResult(passed);
       }

@@ -108,8 +108,14 @@ const CommunityGrid = () => {
             fee_amount: community.membership_token_requirement
           });
 
-        if (paymentError || !paymentResult) {
+        if (paymentError) {
+          console.error('Payment error:', paymentError);
           alert(`Insufficient BROS tokens. Required: ${community.membership_token_requirement} BROS`);
+          return;
+        }
+        
+        if (!paymentResult) {
+          alert(`Payment failed. Required: ${community.membership_token_requirement} BROS`);
           return;
         }
       }

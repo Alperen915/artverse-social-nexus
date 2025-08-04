@@ -91,6 +91,8 @@ export const PublicCreateEventModal = ({ isOpen, onClose, onEventCreated }: Publ
           venue_or_link: formData.venue_or_link || null,
           max_attendees: formData.max_attendees ? parseInt(formData.max_attendees) : null,
           host_id: user.id,
+          is_paid: formData.is_paid,
+          ticket_price: formData.is_paid && formData.ticket_price ? parseFloat(formData.ticket_price) : 0,
         });
 
       if (error) {

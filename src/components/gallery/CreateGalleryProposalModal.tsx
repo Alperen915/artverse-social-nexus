@@ -67,6 +67,7 @@ export const CreateGalleryProposalModal = ({ isOpen, onClose, communityId }: Cre
           community_id: communityId,
           proposal_id: proposal.id,
           submission_deadline: submissionDeadline.toISOString(),
+          nft_price: parseInt(formData.nftPrice),
           status: 'pending',
         });
 

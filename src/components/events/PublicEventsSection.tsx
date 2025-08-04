@@ -18,6 +18,8 @@ interface PublicEvent {
   max_attendees: number;
   status: string;
   created_at: string;
+  ticket_price: number;
+  is_paid: boolean;
   public_event_rsvps: { count: number }[];
 }
 
@@ -232,6 +234,9 @@ export const PublicEventsSection = () => {
                     <span>{event.public_event_rsvps?.[0]?.count || 0} katılımcı</span>
                     {event.max_attendees && (
                       <span>/ {event.max_attendees} maksimum</span>
+                    )}
+                    {event.is_paid && (
+                      <span className="text-green-600 font-medium">• {event.ticket_price} BROS</span>
                     )}
                   </div>
                   
