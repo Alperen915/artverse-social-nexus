@@ -83,6 +83,43 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
         }
       }
 
+      // If it's a community event proposal and it passed, create the event
+      if (proposal.proposal_type === 'community_event' && passed) {
+        try {
+          // Extract event details from proposal title/description
+          const eventTitle = proposal.title.replace('Community Event: ', '') || 'Community Event';
+          const eventDate = new Date();
+          eventDate.setDate(eventDate.getDate() + 7); // Default to 1 week from now
+          
+          const { data: communityData } = await supabase
+            .from('community_memberships')
+            .select('community_id')
+            .eq('user_id', proposal.creator_id)
+            .limit(1)
+            .single();
+
+          if (communityData) {
+            const { error: eventError } = await supabase
+              .from('events')
+              .insert({
+                title: eventTitle,
+                description: proposal.description,
+                community_id: communityData.community_id,
+                host_id: proposal.creator_id,
+                event_date: eventDate.toISOString(),
+                venue_or_link: 'To be announced',
+                status: 'upcoming'
+              });
+
+            if (eventError) {
+              console.error('Error creating community event:', eventError);
+            }
+          }
+        } catch (error) {
+          console.error('Error creating community event:', error);
+        }
+      }
+
       onVoteUpdate();
     } catch (error) {
       console.error('Error processing proposal result:', error);
@@ -187,6 +224,44 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
         setTimeout(() => {
           alert('🎉 Gallery approved! NFTs are being minted and will be available in the marketplace soon!');
         }, 1000);
+      }
+    }
+
+    // If it's a community event proposal and it passed, create the event
+    if (proposal.proposal_type === 'community_event' && passed) {
+      try {
+        const eventTitle = proposal.title.replace('Community Event: ', '') || 'Community Event';
+        const eventDate = new Date();
+        eventDate.setDate(eventDate.getDate() + 7);
+        
+        const { data: communityData } = await supabase
+          .from('community_memberships')
+          .select('community_id')
+          .eq('user_id', proposal.creator_id)
+          .limit(1)
+          .single();
+
+        if (communityData) {
+          const { error: eventError } = await supabase
+            .from('events')
+            .insert({
+              title: eventTitle,
+              description: proposal.description,
+              community_id: communityData.community_id,
+              host_id: proposal.creator_id,
+              event_date: eventDate.toISOString(),
+              venue_or_link: 'To be announced',
+              status: 'upcoming'
+            });
+
+          if (!eventError) {
+            setTimeout(() => {
+              alert('🎉 Community event approved! Event has been created and will appear in the Events section.');
+            }, 1000);
+          }
+        }
+      } catch (error) {
+        console.error('Error creating community event:', error);
       }
     }
   };
@@ -307,6 +382,30 @@ export const ProposalCard = ({ proposal, onVoteUpdate }: ProposalCardProps) => {
           {proposal.status === 'rejected' && proposal.proposal_type === 'gallery' && (
             <div className="bg-red-50 p-3 rounded-lg text-sm text-red-800">
               <p><strong>Gallery Rejected:</strong> This gallery proposal did not pass community vote.</p>
+            </div>
+          )}
+
+          {proposal.status === 'passed' && proposal.proposal_type === 'community_event' && (
+            <div className="bg-green-50 p-3 rounded-lg text-sm text-green-800">
+              <p><strong>Event Approved!</strong> The community event has been created. Check the Events tab to see details and RSVP.</p>
+            </div>
+          )}
+
+          {proposal.status === 'rejected' && proposal.proposal_type === 'community_event' && (
+            <div className="bg-red-50 p-3 rounded-lg text-sm text-red-800">
+              <p><strong>Event Rejected:</strong> This community event proposal did not pass community vote.</p>
+            </div>
+          )}
+
+          {proposal.status === 'passed' && proposal.proposal_type === 'public_event' && (
+            <div className="bg-green-50 p-3 rounded-lg text-sm text-green-800">
+              <p><strong>Participation Approved!</strong> The DAO will participate in this public event as a group.</p>
+            </div>
+          )}
+
+          {proposal.status === 'rejected' && proposal.proposal_type === 'public_event' && (
+            <div className="bg-red-50 p-3 rounded-lg text-sm text-red-800">
+              <p><strong>Participation Rejected:</strong> The DAO will not participate in this public event.</p>
             </div>
           )}
 

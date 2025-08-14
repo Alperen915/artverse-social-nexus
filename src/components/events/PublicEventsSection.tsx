@@ -104,7 +104,7 @@ export const PublicEventsSection = () => {
           creator_id: user.id,
           title: `${event.title} Etkinliğine Katılım`,
           description: `DAO olarak "${event.title}" etkinliğine katılmak için oylama. Etkinlik tarihi: ${new Date(event.event_date).toLocaleDateString('tr-TR')}`,
-          proposal_type: 'event_participation',
+          proposal_type: 'public_event',
           voting_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
         });
 

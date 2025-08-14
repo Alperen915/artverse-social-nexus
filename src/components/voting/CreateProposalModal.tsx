@@ -108,6 +108,7 @@ export const CreateProposalModal = ({ isOpen, onClose, communityId }: CreateProp
             <option value="membership">Membership</option>
             <option value="gallery">NFT Gallery</option>
             <option value="public_event">Public Event Participation</option>
+            <option value="community_event">Community Event</option>
           </select>
           
           {formData.proposalType === 'gallery' && (
@@ -120,6 +121,12 @@ export const CreateProposalModal = ({ isOpen, onClose, communityId }: CreateProp
           {formData.proposalType === 'public_event' && (
             <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
               <p><strong>Note:</strong> This proposal will allow the DAO to participate in a public event as a group.</p>
+            </div>
+          )}
+          
+          {formData.proposalType === 'community_event' && (
+            <div className="bg-green-50 p-3 rounded-lg text-sm text-green-800">
+              <p><strong>Note:</strong> This proposal will create a community event for DAO members only.</p>
             </div>
           )}
 
