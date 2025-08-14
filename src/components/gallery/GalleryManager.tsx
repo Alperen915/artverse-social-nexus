@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +10,9 @@ import { SubmitArtworkModal } from './SubmitArtworkModal';
 import { GallerySubmissions } from './GallerySubmissions';
 import { GallerySubmissionRequirement } from './GallerySubmissionRequirement';
 import { RevenueDistribution } from './RevenueDistribution';
-import { ImageIcon, Plus, Calendar, DollarSign, Users } from 'lucide-react';
+import { VRGalleryViewer } from '@/components/vr/VRGalleryViewer';
+import { VRLandProposalModal } from '@/components/vr/VRLandProposalModal';
+import { Plus, Image, Users, Calendar, Eye, Headset } from 'lucide-react';
 
 interface GalleryManagerProps {
   communityId: string;
@@ -32,6 +33,8 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showVRModal, setShowVRModal] = useState(false);
+  const [selectedGalleryForVR, setSelectedGalleryForVR] = useState<string | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [selectedGallery, setSelectedGallery] = useState<Gallery | null>(null);
   const { user } = useAuth();
@@ -93,6 +96,50 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
     setShowSubmitModal(true);
   };
 
+  const handleProposalCreated = () => {
+    setSelectedGalleryForVR(null);
+    setShowCreateModal(false);
+    setShowVRModal(false);
+    fetchGalleries();
+  };
+
+  const handleSubmissionComplete = () => {
+    setSelectedGalleryForVR(null);
+    fetchGalleries();
+  };
+
+  const handleVRGalleryView = (galleryId: string) => {
+    setSelectedGalleryForVR(galleryId);
+  };
+
+  const handleCreateVRLand = () => {
+    if (!user) {
+      alert('Please sign in to create VR land proposals');
+      return;
+    }
+    setShowVRModal(true);
+  };
+
+  // If VR Gallery is selected, show VR viewer
+  if (selectedGalleryForVR) {
+    const selectedGallery = galleries.find(g => g.id === selectedGalleryForVR);
+    return (
+      <div className="space-y-4">
+        <Button 
+          onClick={() => setSelectedGalleryForVR(null)}
+          variant="outline"
+          className="mb-4"
+        >
+          ← Back to Galleries
+        </Button>
+        <VRGalleryViewer 
+          galleryId={selectedGalleryForVR}
+          galleryTitle={selectedGallery?.title || 'VR Gallery'}
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="text-center py-8">
@@ -106,16 +153,26 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <ImageIcon className="w-5 h-5 text-purple-600" />
-          <h2 className="text-2xl font-bold text-gray-900">NFT Galerileri</h2>
+          <Image className="w-5 h-5 text-purple-600" />
+          <h2 className="text-2xl font-bold text-gray-900">NFT Galeriler</h2>
         </div>
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Galeri Öner
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Galeri Öner
+          </Button>
+          <Button
+            onClick={handleCreateVRLand}
+            variant="outline"
+            className="border-purple-300 text-purple-600 hover:bg-purple-50"
+          >
+            <Headset className="w-4 h-4 mr-2" />
+            VR Arazi Öner
+          </Button>
+        </div>
       </div>
 
       <div className="bg-blue-50 p-4 rounded-lg">
@@ -126,12 +183,13 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
           <li>• <strong>Onaylanan galerilere her üye ZORUNLU olarak en az bir eser göndermelidir</strong></li>
           <li>• Satışlardan elde edilen gelir TÜM topluluk üyeleri arasında eşit dağıtılır</li>
           <li>• Eser göndermemiş üyeler de gelir paylaşımından faydalanır</li>
+          <li>• <strong>VR Galeriler:</strong> Onaylanan galeriler için 3D sanal gerçeklik deneyimi</li>
         </ul>
       </div>
 
       {galleries.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <Image className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-700 mb-2">
             Henüz galeri yok
           </h3>
@@ -169,8 +227,8 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
                     Son Tarih: {new Date(gallery.submission_deadline).toLocaleDateString('tr-TR')}
                   </div>
                   <div className="flex items-center">
-                    <DollarSign className="w-4 h-4 mr-1" />
-                    Toplam Gelir: {gallery.total_revenue} ETH
+                    <Users className="w-4 h-4 mr-1" />
+                    Toplam Gelir: {gallery.total_revenue} BROS
                   </div>
                 </div>
 
@@ -188,6 +246,23 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
                       >
                         Eser Gönder
                       </Button>
+                      <Button
+                        onClick={() => setSelectedGallery(gallery)}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Görüntüle
+                      </Button>
+                      <Button
+                        onClick={() => handleVRGalleryView(gallery.id)}
+                        variant="outline"
+                        size="sm"
+                        className="border-purple-300 text-purple-600 hover:bg-purple-50"
+                      >
+                        <Headset className="w-4 h-4 mr-2" />
+                        VR Gallery
+                      </Button>
                     </div>
                   </>
                 )}
@@ -195,11 +270,11 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
                 <Tabs defaultValue="submissions" className="space-y-4">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="submissions" className="flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4" />
+                      <Image className="w-4 h-4" />
                       Eserler
                     </TabsTrigger>
                     <TabsTrigger value="revenue" className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" />
+                      <Users className="w-4 h-4" />
                       Gelir Dağıtımı
                     </TabsTrigger>
                   </TabsList>
@@ -232,6 +307,12 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
         communityId={communityId}
       />
 
+      <VRLandProposalModal
+        isOpen={showVRModal}
+        onClose={() => setShowVRModal(false)}
+        communityId={communityId}
+      />
+
       {selectedGallery && (
         <SubmitArtworkModal
           isOpen={showSubmitModal}
@@ -240,7 +321,7 @@ export const GalleryManager = ({ communityId }: GalleryManagerProps) => {
             setSelectedGallery(null);
           }}
           gallery={selectedGallery}
-          onSubmissionComplete={fetchGalleries}
+          onSubmissionComplete={handleSubmissionComplete}
         />
       )}
     </div>

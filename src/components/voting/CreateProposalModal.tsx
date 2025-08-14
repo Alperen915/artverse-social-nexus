@@ -109,6 +109,7 @@ export const CreateProposalModal = ({ isOpen, onClose, communityId }: CreateProp
             <option value="gallery">NFT Gallery</option>
             <option value="public_event">Public Event Participation</option>
             <option value="community_event">Community Event</option>
+            <option value="vr_land">VR Land</option>
           </select>
           
           {formData.proposalType === 'gallery' && (
@@ -127,6 +128,12 @@ export const CreateProposalModal = ({ isOpen, onClose, communityId }: CreateProp
           {formData.proposalType === 'community_event' && (
             <div className="bg-green-50 p-3 rounded-lg text-sm text-green-800">
               <p><strong>Note:</strong> This proposal will create a community event for DAO members only.</p>
+            </div>
+          )}
+
+          {formData.proposalType === 'vr_land' && (
+            <div className="bg-purple-50 p-3 rounded-lg text-sm text-purple-800">
+              <p><strong>Note:</strong> This proposal will create a VR land for 3D NFT galleries. Use the "VR Land Proposal" button in the Gallery tab for better experience.</p>
             </div>
           )}
 
