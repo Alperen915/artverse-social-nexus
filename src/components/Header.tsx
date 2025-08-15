@@ -81,6 +81,9 @@ const Header = () => {
               <Link to="/events" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Events
               </Link>
+              <Link to="/metaverse" className="text-gray-700 hover:text-purple-600 transition-colors">
+                Metaverse
+              </Link>
             </nav>
 
             {/* Actions */}
