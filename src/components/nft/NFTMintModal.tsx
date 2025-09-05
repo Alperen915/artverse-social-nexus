@@ -8,7 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useWallet } from '@/hooks/useWallet';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Coins, AlertTriangle } from 'lucide-react';
+import { uploadToIPFS, NFTMetadata } from '@/utils/ipfsService';
+import { Coins, AlertTriangle, Upload } from 'lucide-react';
 
 interface NFTMintModalProps {
   isOpen: boolean;
@@ -42,24 +43,39 @@ export const NFTMintModal = ({ isOpen, onClose, submission, onMintComplete }: NF
 
     setLoading(true);
     try {
-      // Simulate NFT minting process
+      // First, upload metadata to IPFS
+      console.log('Uploading metadata to IPFS...');
+      
+      // Convert image URL to File object for IPFS upload
+      const imageResponse = await fetch(submission.image_url);
+      const imageBlob = await imageResponse.blob();
+      const imageFile = new File([imageBlob], `${submission.title}.jpg`, { type: 'image/jpeg' });
+
+      const nftMetadata: NFTMetadata = {
+        title: submission.title,
+        description: submission.description,
+        creator: address,
+        attributes: [
+          { trait_type: 'Original Price', value: `${submission.price} ETH` },
+          { trait_type: 'Minted By', value: address },
+          { trait_type: 'Submission ID', value: submission.id }
+        ],
+        royalty_percentage: 5
+      };
+
+      const ipfsResult = await uploadToIPFS(nftMetadata, imageFile);
+      
+      if (!ipfsResult.success) {
+        throw new Error(ipfsResult.error || 'IPFS upload failed');
+      }
+
+      console.log('IPFS upload successful:', ipfsResult);
+
+      // Simulate NFT minting process with real IPFS metadata
       const tokenId = Math.floor(Math.random() * 1000000).toString();
       const transactionHash = '0x' + Math.random().toString(16).substr(2, 64);
       
-      // Create metadata URI (simulated)
-      const metadata = {
-        name: submission.title,
-        description: submission.description,
-        image: submission.image_url,
-        attributes: [
-          { trait_type: 'Original Price', value: submission.price + ' ETH' },
-          { trait_type: 'Minted By', value: address }
-        ]
-      };
-      
-      const metadataUri = `https://ipfs.io/ipfs/${Math.random().toString(36).substr(2, 46)}`;
-      
-      // Record the mint in database
+      // Record the mint in database with real IPFS URI
       const { error } = await supabase
         .from('nft_mints')
         .insert({
@@ -68,7 +84,7 @@ export const NFTMintModal = ({ isOpen, onClose, submission, onMintComplete }: NF
           contract_address: contractAddress,
           token_id: tokenId,
           transaction_hash: transactionHash,
-          metadata_uri: metadataUri,
+          metadata_uri: ipfsResult.metadataIpfsUrl,
           gas_used: 150000,
           gas_price: 20000000000,
           status: 'confirmed'
@@ -78,22 +94,23 @@ export const NFTMintModal = ({ isOpen, onClose, submission, onMintComplete }: NF
         console.error('Error recording mint:', error);
         alert('NFT mint kaydı başarısız oldu');
       } else {
-        // Update gallery submission with NFT contract info
+        // Update gallery submission with NFT contract info and IPFS data
         await supabase
           .from('gallery_submissions')
           .update({
             nft_contract: contractAddress,
-            nft_token_id: tokenId
+            nft_token_id: tokenId,
+            image_url: ipfsResult.imageIpfsUrl // Update with IPFS image URL
           })
           .eq('id', submission.id);
 
-        alert(`NFT başarıyla mintlendi! Token ID: ${tokenId}`);
+        alert(`NFT başarıyla mintlendi!\nToken ID: ${tokenId}\nIPFS: ${ipfsResult.metadataIpfsHash}`);
         onMintComplete();
         onClose();
       }
     } catch (error) {
       console.error('Error minting NFT:', error);
-      alert('NFT minting işlemi başarısız oldu');
+      alert(`NFT minting işlemi başarısız oldu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
     } finally {
       setLoading(false);
     }
