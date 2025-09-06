@@ -9,6 +9,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadToIPFS, NFTMetadata } from '@/utils/ipfsService';
+import { web3Service } from '@/services/web3Service';
 import { Coins, AlertTriangle, Upload } from 'lucide-react';
 
 interface NFTMintModalProps {
@@ -71,43 +72,41 @@ export const NFTMintModal = ({ isOpen, onClose, submission, onMintComplete }: NF
 
       console.log('IPFS upload successful:', ipfsResult);
 
-      // Simulate NFT minting process with real IPFS metadata
-      const tokenId = Math.floor(Math.random() * 1000000).toString();
-      const transactionHash = '0x' + Math.random().toString(16).substr(2, 64);
-      
-      // Record the mint in database with real IPFS URI
-      const { error } = await supabase
-        .from('nft_mints')
-        .insert({
-          submission_id: submission.id,
-          minter_address: address,
-          contract_address: contractAddress,
-          token_id: tokenId,
-          transaction_hash: transactionHash,
-          metadata_uri: ipfsResult.metadataIpfsUrl,
-          gas_used: 150000,
-          gas_price: 20000000000,
-          status: 'confirmed'
-        });
+      // Connect wallet and mint NFT on blockchain
+      const walletAddress = await web3Service.connectWallet();
+      if (!walletAddress) {
+        throw new Error('Wallet bağlantısı başarısız');
+      }
+
+      console.log('Blockchain üzerinde NFT mintleniyor...');
+      const { transactionHash, tokenId } = await web3Service.mintNFT(
+        contractAddress,
+        address,
+        ipfsResult.metadataIpfsUrl
+      );
+
+      console.log('NFT blockchain üzerinde başarıyla mintlendi:', { transactionHash, tokenId });
+
+      // Record the mint on our backend
+      const { data, error } = await supabase.functions.invoke('mint-nft', {
+        body: {
+          submissionId: submission.id,
+          contractAddress,
+          recipientAddress: address,
+          metadataUri: ipfsResult.metadataIpfsUrl,
+          transactionHash,
+          tokenId
+        }
+      });
 
       if (error) {
         console.error('Error recording mint:', error);
-        alert('NFT mint kaydı başarısız oldu');
-      } else {
-        // Update gallery submission with NFT contract info and IPFS data
-        await supabase
-          .from('gallery_submissions')
-          .update({
-            nft_contract: contractAddress,
-            nft_token_id: tokenId,
-            image_url: ipfsResult.imageIpfsUrl // Update with IPFS image URL
-          })
-          .eq('id', submission.id);
-
-        alert(`NFT başarıyla mintlendi!\nToken ID: ${tokenId}\nIPFS: ${ipfsResult.metadataIpfsHash}`);
-        onMintComplete();
-        onClose();
+        throw new Error('Veritabanına kayıt başarısız');
       }
+
+      alert(`NFT başarıyla mintlendi!\nToken ID: ${tokenId}\nTransaction: ${transactionHash}\nIPFS: ${ipfsResult.metadataIpfsHash}`);
+      onMintComplete();
+      onClose();
     } catch (error) {
       console.error('Error minting NFT:', error);
       alert(`NFT minting işlemi başarısız oldu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
