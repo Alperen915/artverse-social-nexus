@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useWallet } from '@/hooks/useWallet';
 import { useNavigate } from 'react-router-dom';
+import { marketplaceService } from '@/services/marketplaceService';
 import { ShoppingCart, ExternalLink, Coins, AlertCircle, Wallet, ArrowLeft } from 'lucide-react';
 
 interface PublicNFTListing {
@@ -99,58 +100,82 @@ export const PublicNFTMarketplace = () => {
     }
 
     try {
-      // Simulate NFT purchase
-      const transactionHash = '0x' + Math.random().toString(16).substr(2, 64);
+      console.log('Purchasing NFT from marketplace...');
       
-      // Update listing status
-      const { error: updateError } = await supabase
-        .from('public_nft_marketplace')
-        .update({ 
-          status: 'sold',
-          sold_at: new Date().toISOString(),
-          buyer_address: address,
-          transaction_hash: transactionHash
-        })
-        .eq('id', listing.id);
+      // Purchase NFT through marketplace service
+      const purchaseResult = await marketplaceService.buyNFT(
+        listing.nft_mints.contract_address,
+        listing.nft_mints.token_id,
+        listing.price.toString()
+      );
 
-      // Record sale in gallery_sales
-      const { error: saleError } = await supabase
-        .from('gallery_sales')
-        .insert({
-          submission_id: listing.submission_id,
-          buyer_address: address,
-          sale_price: listing.price,
-          transaction_hash: transactionHash
-        });
+      console.log('NFT purchase successful:', purchaseResult);
 
-      // Record blockchain transaction
-      const { error: txError } = await supabase
-        .from('blockchain_transactions')
-        .insert({
-          tx_hash: transactionHash,
-          from_address: address,
-          to_address: listing.seller_address,
-          value: listing.price,
-          transaction_type: 'sale',
-          status: 'confirmed',
-          metadata: {
-            listing_id: listing.id,
-            nft_contract: listing.nft_mints.contract_address,
-            token_id: listing.nft_mints.token_id,
-            marketplace: 'public'
-          }
-        });
+      // Record the purchase on our backend
+      const { data, error } = await supabase.functions.invoke('purchase-nft', {
+        body: {
+          mintId: listing.nft_mints.contract_address + '_' + listing.nft_mints.token_id,
+          submissionId: listing.submission_id,
+          buyerAddress: purchaseResult.buyer,
+          sellerAddress: purchaseResult.seller,
+          transactionHash: purchaseResult.transactionHash,
+          price: parseFloat(purchaseResult.price),
+          gasUsed: purchaseResult.gasUsed
+        }
+      });
 
-      if (updateError || saleError || txError) {
-        console.error('Error processing purchase:', updateError || saleError || txError);
-        alert('Satın alma işlemi başarısız oldu');
-      } else {
-        alert(`NFT başarıyla satın alındı! Transaction: ${transactionHash.slice(0, 10)}...`);
-        fetchListings();
+      if (error) {
+        console.error('Error recording purchase:', error);
+        throw new Error('Satın alma kaydı başarısız');
       }
+
+      alert(`NFT başarıyla satın alındı!\nTransaction: ${purchaseResult.transactionHash}\nGas kullanıldı: ${purchaseResult.gasUsed}`);
+      fetchListings();
     } catch (error) {
       console.error('Error purchasing NFT:', error);
-      alert('Satın alma işlemi başarısız oldu');
+      alert(`Satın alma işlemi başarısız oldu: ${error.message}`);
+    }
+  };
+
+  const handleListForSale = async (submission: any, mintId: string, price: string) => {
+    if (!isConnected || !address) {
+      alert('Lütfen MetaMask wallet\'ınızı bağlayın');
+      return;
+    }
+
+    try {
+      console.log('Listing NFT on marketplace...');
+      
+      // List NFT through marketplace service
+      const transactionHash = await marketplaceService.listNFT(
+        submission.nft_contract,
+        submission.nft_token_id,
+        price
+      );
+
+      console.log('NFT listing successful:', transactionHash);
+
+      // Record the listing on our backend
+      const { data, error } = await supabase.functions.invoke('list-nft', {
+        body: {
+          submissionId: submission.id,
+          mintId: mintId,
+          sellerAddress: address,
+          price: parseFloat(price),
+          transactionHash: transactionHash
+        }
+      });
+
+      if (error) {
+        console.error('Error recording listing:', error);
+        throw new Error('Listeleme kaydı başarısız');
+      }
+
+      alert(`NFT başarıyla marketplace'e listelendi!\nTransaction: ${transactionHash}`);
+      fetchListings();
+    } catch (error) {
+      console.error('Error listing NFT:', error);
+      alert(`Listeleme işlemi başarısız oldu: ${error.message}`);
     }
   };
 
