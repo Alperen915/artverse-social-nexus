@@ -22,7 +22,12 @@ const Footer = () => {
               <Button variant="outline" size="sm" className="border-gray-600 text-gray-400 hover:border-purple-400 hover:text-white">
                 Twitter
               </Button>
-              <Button variant="outline" size="sm" className="border-gray-600 text-gray-400 hover:border-purple-400 hover:text-white">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-gray-600 text-gray-400 hover:border-purple-400 hover:text-white"
+                onClick={() => window.open('https://github.com/Alperen915', '_blank')}
+              >
                 GitHub
               </Button>
             </div>
