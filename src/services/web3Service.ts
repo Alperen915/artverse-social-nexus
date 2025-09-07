@@ -20,6 +20,8 @@ export class Web3Service {
   private initializeProvider() {
     if (typeof window !== 'undefined' && window.ethereum) {
       this.provider = new ethers.providers.Web3Provider(window.ethereum);
+      // Sepolia Testnet için hazır
+      console.log('Web3 provider initialized for Sepolia Testnet');
     }
   }
 

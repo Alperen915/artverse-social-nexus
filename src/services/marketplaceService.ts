@@ -212,7 +212,6 @@ export class MarketplaceService {
   }
 }
 
-// Default marketplace service instance
-// Replace with your actual marketplace contract address
-const MARKETPLACE_CONTRACT_ADDRESS = '0x1234567890123456789012345678901234567890';
+// Sepolia Testnet marketplace contract (gerçek deployed contract)
+const MARKETPLACE_CONTRACT_ADDRESS = '0x1604Fef32d056bB14035056A12d78EBd9706680E';
 export const marketplaceService = new MarketplaceService(MARKETPLACE_CONTRACT_ADDRESS);

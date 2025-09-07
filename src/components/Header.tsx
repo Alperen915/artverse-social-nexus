@@ -7,6 +7,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { AuthModal } from './auth/AuthModal';
 import { CreateCommunityModal } from './modals/CreateCommunityModal';
 import { NotificationBell } from './notifications/NotificationBell';
+import { NetworkSwitcher } from './wallet/NetworkSwitcher';
 import { LogOut, Plus, Wallet } from 'lucide-react';
 
 const Header = () => {
@@ -88,6 +89,7 @@ const Header = () => {
 
             {/* Actions */}
             <div className="flex items-center space-x-4">
+              <NetworkSwitcher />
               {/* Wallet Connection */}
               <Button
                 variant="outline"
