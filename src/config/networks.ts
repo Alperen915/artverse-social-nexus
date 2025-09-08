@@ -6,7 +6,7 @@ export const SEPOLIA_TESTNET = {
     symbol: 'ETH',
     decimals: 18,
   },
-  rpcUrls: ['https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID'],
+  rpcUrls: ['https://lb.drpc.org/ogrpc?network=sepolia&dkey='],
   blockExplorerUrls: ['https://sepolia.etherscan.io/'],
 };
 
