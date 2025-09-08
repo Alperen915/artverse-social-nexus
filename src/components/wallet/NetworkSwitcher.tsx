@@ -1,61 +1,30 @@
+import { ChainSelector } from './ChainSelector';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { SEPOLIA_TESTNET, FAUCETS } from '@/config/networks';
+import { useNetwork } from '@/hooks/useNetwork';
 
 export const NetworkSwitcher = () => {
-  const { toast } = useToast();
-
-  const switchToSepolia = async () => {
-    if (!window.ethereum) {
-      toast({
-        title: "MetaMask bulunamadı",
-        description: "Lütfen MetaMask yükleyin",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: SEPOLIA_TESTNET.chainId }],
-      });
-      
-      toast({
-        title: "Network değiştirildi",
-        description: "Sepolia Testnet aktif",
-      });
-    } catch (switchError: any) {
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [SEPOLIA_TESTNET],
-          });
-        } catch (addError) {
-          console.error('Network eklenirken hata:', addError);
-          toast({
-            title: "Network eklenemedi",
-            description: "Sepolia Testnet eklenirken hata oluştu",
-            variant: "destructive",
-          });
-        }
-      }
-    }
-  };
+  const { isSupported } = useNetwork();
 
   const openFaucet = () => {
-    window.open(FAUCETS.SEPOLIA, '_blank');
+    // Multi-chain faucet links
+    const faucetUrls = {
+      'Sepolia Testnet': 'https://sepolia-faucet.pk910.de/',
+      'Polygon': 'https://faucet.polygon.technology/',
+      'BSC': 'https://testnet.bnbchain.org/faucet-smart',
+    };
+    
+    // Open appropriate faucet or general faucet list
+    window.open('https://faucetlink.to/', '_blank');
   };
 
   return (
-    <div className="flex gap-2">
-      <Button onClick={switchToSepolia} variant="outline">
-        Sepolia Testnet
-      </Button>
-      <Button onClick={openFaucet} variant="secondary">
-        Testnet ETH Al
-      </Button>
+    <div className="flex gap-2 items-center">
+      <ChainSelector />
+      {!isSupported && (
+        <Button onClick={openFaucet} variant="secondary" size="sm">
+          Test Token Al
+        </Button>
+      )}
     </div>
   );
 };
