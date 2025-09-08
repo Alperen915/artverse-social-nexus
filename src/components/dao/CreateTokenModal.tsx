@@ -59,7 +59,7 @@ export function CreateTokenModal({ open, onOpenChange, communityId, onTokenCreat
       });
 
       // Save token info to database
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('dao_tokens')
         .insert({
           community_id: communityId,

@@ -42,7 +42,7 @@ export function DAOTokenManager({ communityId }: DAOTokenManagerProps) {
     try {
       setIsLoading(true);
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('dao_tokens')
         .select('*')
         .eq('community_id', communityId)
@@ -50,7 +50,7 @@ export function DAOTokenManager({ communityId }: DAOTokenManagerProps) {
 
       if (error) throw error;
 
-      setTokens(data || []);
+      setTokens((data as DAOToken[]) || []);
 
       // Fetch token balances for user
       if (user && data) {

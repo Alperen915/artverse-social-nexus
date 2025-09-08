@@ -34,7 +34,7 @@ export function TokenMarketplace() {
       setIsLoading(true);
       
       // Fetch tokens from database
-      const { data: dbTokens, error } = await supabase
+      const { data: dbTokens, error } = await (supabase as any)
         .from('dao_tokens')
         .select('*')
         .eq('status', 'deployed');

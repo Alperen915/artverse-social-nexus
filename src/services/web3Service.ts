@@ -55,6 +55,10 @@ export class Web3Service {
     return this.signer;
   }
 
+  getProvider(): ethers.providers.Provider | null {
+    return this.provider;
+  }
+
   async getNetwork(): Promise<ethers.providers.Network | null> {
     try {
       if (!this.provider) return null;

@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -219,6 +219,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dao_tokens: {
+        Row: {
+          community_id: string
+          created_at: string
+          creator_id: string
+          deployment_tx_hash: string
+          description: string | null
+          id: string
+          network: string
+          status: string
+          token_address: string
+          token_name: string
+          token_symbol: string
+          total_supply: number
+          updated_at: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          creator_id: string
+          deployment_tx_hash: string
+          description?: string | null
+          id?: string
+          network?: string
+          status?: string
+          token_address: string
+          token_name: string
+          token_symbol: string
+          total_supply: number
+          updated_at?: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          creator_id?: string
+          deployment_tx_hash?: string
+          description?: string | null
+          id?: string
+          network?: string
+          status?: string
+          token_address?: string
+          token_name?: string
+          token_symbol?: string
+          total_supply?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       event_rsvps: {
         Row: {
@@ -958,6 +1006,87 @@ export type Database = {
           },
         ]
       }
+      token_marketplace_listings: {
+        Row: {
+          amount: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          price_per_token: number
+          seller: string
+          status: string
+          token_address: string
+          total_price: number
+          transaction_hash: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          price_per_token: number
+          seller: string
+          status?: string
+          token_address: string
+          total_price: number
+          transaction_hash?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          price_per_token?: number
+          seller?: string
+          status?: string
+          token_address?: string
+          total_price?: number
+          transaction_hash?: string | null
+        }
+        Relationships: []
+      }
+      token_transactions: {
+        Row: {
+          amount: number
+          block_number: number | null
+          created_at: string
+          from_address: string
+          id: string
+          price_per_token: number
+          to_address: string
+          token_address: string
+          total_price: number
+          transaction_hash: string
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          block_number?: number | null
+          created_at?: string
+          from_address: string
+          id?: string
+          price_per_token: number
+          to_address: string
+          token_address: string
+          total_price: number
+          transaction_hash: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          block_number?: number | null
+          created_at?: string
+          from_address?: string
+          id?: string
+          price_per_token?: number
+          to_address?: string
+          token_address?: string
+          total_price?: number
+          transaction_hash?: string
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       user_token_balances: {
         Row: {
           balance: number
@@ -1045,20 +1174,20 @@ export type Database = {
       distribute_gallery_revenue: {
         Args: { gallery_id_param: string }
         Returns: {
-          user_id: string
           payout_amount: number
+          user_id: string
         }[]
       }
       handle_dao_membership_payment: {
         Args: {
           community_id_param: string
-          user_id_param: string
           fee_amount: number
+          user_id_param: string
         }
         Returns: boolean
       }
       increment_vote_count: {
-        Args: { proposal_id: string; is_yes_vote: boolean }
+        Args: { is_yes_vote: boolean; proposal_id: string }
         Returns: undefined
       }
       split_event_cost_among_dao_members: {
