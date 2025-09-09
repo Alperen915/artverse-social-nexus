@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
+import TokenMarketplace from "./pages/TokenMarketplace";
 import CommunityDetail from "./pages/CommunityDetail";
 import Gallery from "./pages/Gallery";
 import Governance from "./pages/Governance";
@@ -25,6 +26,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/token-marketplace" element={<TokenMarketplace />} />
           <Route path="/community/:id" element={<CommunityDetail />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/governance" element={<Governance />} />

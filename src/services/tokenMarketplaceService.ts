@@ -36,8 +36,8 @@ class TokenMarketplaceService {
   private marketplaceAddress: string;
 
   constructor() {
-    // Sepolia testnet token marketplace address
-    this.marketplaceAddress = '0x3604Fef32d056bB14035056A12d78EBd9706680F';
+    // Use contract address from config
+    this.marketplaceAddress = '0x3604Fef32d056bB14035056A12d78EBd9706680F'; // Will be updated with real contracts
   }
 
   async listToken(tokenAddress: string, amount: string, pricePerTokenInEth: string): Promise<string> {
