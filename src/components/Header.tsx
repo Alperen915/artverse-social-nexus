@@ -8,6 +8,7 @@ import { AuthModal } from './auth/AuthModal';
 import { CreateCommunityModal } from './modals/CreateCommunityModal';
 import { NotificationBell } from './notifications/NotificationBell';
 import { NetworkSwitcher } from './wallet/NetworkSwitcher';
+import { WalletConnector } from './dao/WalletConnector';
 import { LogOut, Plus, Wallet } from 'lucide-react';
 
 const Header = () => {
@@ -93,19 +94,7 @@ const Header = () => {
             {/* Actions */}
             <div className="flex items-center space-x-4">
               <NetworkSwitcher />
-              {/* Wallet Connection */}
-              <Button
-                variant="outline"
-                onClick={handleWalletAction}
-                className="hidden sm:flex items-center gap-2"
-                disabled={loading}
-              >
-                <Wallet className="w-4 h-4" />
-                {isConnected 
-                  ? `${address?.slice(0, 6)}...${address?.slice(-4)}`
-                  : 'Connect Wallet'
-                }
-              </Button>
+              <WalletConnector />
 
               {/* Create Community */}
               <Button

@@ -47,6 +47,18 @@ export function CreateTokenModal({ open, onOpenChange, communityId, onTokenCreat
       return;
     }
 
+    // Check if user has a wallet address
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('wallet_address')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.wallet_address) {
+      toast.error('Lütfen önce cüzdanınızı bağlayın');
+      return;
+    }
+
     setIsCreating(true);
 
     try {

@@ -58,11 +58,20 @@ export function DAOTokenManager({ communityId }: DAOTokenManagerProps) {
         for (const token of data) {
           try {
             if (token.status === 'deployed') {
-              const balance = await tokenService.getTokenBalance(
-                token.token_address,
-                user.id // This should be wallet address, needs wallet integration
-              );
-              balances[token.token_address] = balance;
+              // Get user's wallet address from profile or connected wallet
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('wallet_address')
+                .eq('id', user.id)
+                .single();
+              
+              if (profile?.wallet_address) {
+                const balance = await tokenService.getTokenBalance(
+                  token.token_address,
+                  profile.wallet_address
+                );
+                balances[token.token_address] = balance;
+              }
             }
           } catch (error) {
             console.error('Error fetching balance for', token.token_address, error);
