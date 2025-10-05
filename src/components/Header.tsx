@@ -83,6 +83,9 @@ const Header = () => {
               <Link to="/token-marketplace" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Token Marketplace
               </Link>
+              <Link to="/bros-chain" className="text-gray-700 hover:text-purple-600 transition-colors">
+                Bros Chain
+              </Link>
               <Link to="/events" className="text-gray-700 hover:text-purple-600 transition-colors">
                 Events
               </Link>

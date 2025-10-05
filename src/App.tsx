@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Marketplace from "./pages/Marketplace";
 import TokenMarketplace from "./pages/TokenMarketplace";
+import BrosChainInfo from "./pages/BrosChainInfo";
 import CommunityDetail from "./pages/CommunityDetail";
 import Gallery from "./pages/Gallery";
 import Governance from "./pages/Governance";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/token-marketplace" element={<TokenMarketplace />} />
+          <Route path="/bros-chain" element={<BrosChainInfo />} />
           <Route path="/community/:id" element={<CommunityDetail />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/governance" element={<Governance />} />

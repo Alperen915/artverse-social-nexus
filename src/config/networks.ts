@@ -89,6 +89,28 @@ export const SUPPORTED_NETWORKS: Record<string, NetworkConfig> = {
     rpcUrls: ['https://lb.drpc.org/ogrpc?network=avalanche&dkey='],
     blockExplorerUrls: ['https://snowtrace.io/'],
   },
+  BROS_CHAIN_TESTNET: {
+    chainId: '0x42524F53', // "BROS" in hex = 1112887123
+    chainName: 'Bros Chain Testnet',
+    nativeCurrency: {
+      name: 'Bros Token',
+      symbol: 'BROS',
+      decimals: 18,
+    },
+    rpcUrls: ['https://testnet-rpc.broschain.io'],
+    blockExplorerUrls: ['https://testnet-explorer.broschain.io/'],
+  },
+  BROS_CHAIN: {
+    chainId: '0x42524F534D', // "BROSM" in hex = 285926195277 (Mainnet)
+    chainName: 'Bros Chain',
+    nativeCurrency: {
+      name: 'Bros Token',
+      symbol: 'BROS',
+      decimals: 18,
+    },
+    rpcUrls: ['https://rpc.broschain.io'],
+    blockExplorerUrls: ['https://explorer.broschain.io/'],
+  },
 };
 // Backward compatibility
 export const SEPOLIA_TESTNET = SUPPORTED_NETWORKS.SEPOLIA;
