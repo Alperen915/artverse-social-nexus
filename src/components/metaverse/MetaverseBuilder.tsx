@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Grid, Text, Html, Environment, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, Grid, Text, Html, Environment, PerspectiveCamera, TransformControls } from '@react-three/drei';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import { toast } from '@/hooks/use-toast';
 import { 
   Boxes, 
@@ -20,7 +21,9 @@ import {
   Move,
   RotateCw,
   Layers3,
-  Building
+  Building,
+  Copy,
+  Maximize
 } from 'lucide-react';
 import * as THREE from 'three';
 
@@ -125,16 +128,53 @@ function GroundGrid({ size }: { size: [number, number] }) {
   );
 }
 
-// 3D Scene Component
+// 3D Scene Component with Transform Controls
 function MetaverseScene({ 
   land, 
   selectedObject, 
-  onObjectClick 
+  onObjectClick,
+  onObjectUpdate,
+  editMode,
+  transformMode
 }: { 
   land: MetaverseLand;
   selectedObject: LandObject | null;
   onObjectClick: (object: LandObject) => void;
+  onObjectUpdate: (object: LandObject) => void;
+  editMode: boolean;
+  transformMode: 'translate' | 'rotate' | 'scale';
 }) {
+  const orbitControlsRef = useRef<any>(null);
+  const transformControlsRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (transformControlsRef.current) {
+      const controls = transformControlsRef.current;
+      const callback = () => {
+        if (orbitControlsRef.current) {
+          orbitControlsRef.current.enabled = !controls.dragging;
+        }
+      };
+      controls.addEventListener('dragging-changed', callback);
+      return () => controls.removeEventListener('dragging-changed', callback);
+    }
+  }, []);
+
+  const handleTransformChange = () => {
+    if (!selectedObject || !transformControlsRef.current) return;
+    
+    const object = transformControlsRef.current.object;
+    if (object) {
+      const updatedObject: LandObject = {
+        ...selectedObject,
+        position: [object.position.x, object.position.y, object.position.z],
+        rotation: [object.rotation.x, object.rotation.y, object.rotation.z],
+        scale: [object.scale.x, object.scale.y, object.scale.z]
+      };
+      onObjectUpdate(updatedObject);
+    }
+  };
+
   return (
     <>
       <Environment preset="studio" />
@@ -182,6 +222,26 @@ function MetaverseScene({
           onClick={() => onObjectClick(object)}
         />
       ))}
+
+      {/* Transform Controls */}
+      {editMode && selectedObject && (
+        <TransformControls
+          ref={transformControlsRef}
+          object={land.objects.find(obj => obj.id === selectedObject.id) as any}
+          mode={transformMode}
+          onObjectChange={handleTransformChange}
+        />
+      )}
+
+      <OrbitControls
+        ref={orbitControlsRef}
+        enablePan={true}
+        enableZoom={true}
+        enableRotate={true}
+        minDistance={10}
+        maxDistance={100}
+        maxPolarAngle={Math.PI / 2}
+      />
     </>
   );
 }
@@ -192,6 +252,7 @@ export const MetaverseBuilder = () => {
   const [selectedObject, setSelectedObject] = useState<LandObject | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [transformMode, setTransformMode] = useState<'translate' | 'rotate' | 'scale'>('translate');
 
   const [newLandData, setNewLandData] = useState({
     name: '',
@@ -220,39 +281,50 @@ export const MetaverseBuilder = () => {
     { type: 'portal', name: 'Portal', icon: RotateCw, color: '#F59E0B' }
   ];
 
-  // Load sample land
+  // Load lands from localStorage
   useEffect(() => {
-    const sampleLand: MetaverseLand = {
-      id: '1',
-      name: 'Demo Land',
-      description: 'Sample metaverse land for demonstration',
-      size: [50, 50],
-      theme: 'modern',
-      objects: [
-        {
-          id: '1',
-          type: 'building',
-          position: [10, 1.5, 10],
-          rotation: [0, 0, 0],
-          scale: [1, 1, 1],
-          color: '#374151',
-          name: 'Main Building'
-        },
-        {
-          id: '2',
-          type: 'nft_display',
-          position: [-10, 1.25, -10],
-          rotation: [0, Math.PI / 4, 0],
-          scale: [1, 1, 1],
-          color: '#8B5CF6',
-          name: 'NFT Gallery'
-        }
-      ],
-      createdAt: new Date().toISOString()
-    };
-    
-    setLands([sampleLand]);
-    setSelectedLand(sampleLand);
+    const savedLands = localStorage.getItem('metaverse-lands');
+    if (savedLands) {
+      const parsedLands = JSON.parse(savedLands);
+      setLands(parsedLands);
+      if (parsedLands.length > 0) {
+        setSelectedLand(parsedLands[0]);
+      }
+    } else {
+      // Create sample land if none exists
+      const sampleLand: MetaverseLand = {
+        id: '1',
+        name: 'Demo Land',
+        description: 'Sample metaverse land for demonstration',
+        size: [50, 50],
+        theme: 'modern',
+        objects: [
+          {
+            id: '1',
+            type: 'building',
+            position: [10, 1.5, 10],
+            rotation: [0, 0, 0],
+            scale: [1, 1, 1],
+            color: '#374151',
+            name: 'Main Building'
+          },
+          {
+            id: '2',
+            type: 'nft_display',
+            position: [-10, 1.25, -10],
+            rotation: [0, Math.PI / 4, 0],
+            scale: [1, 1, 1],
+            color: '#8B5CF6',
+            name: 'NFT Gallery'
+          }
+        ],
+        createdAt: new Date().toISOString()
+      };
+      
+      setLands([sampleLand]);
+      setSelectedLand(sampleLand);
+      localStorage.setItem('metaverse-lands', JSON.stringify([sampleLand]));
+    }
   }, []);
 
   const createNewLand = () => {
@@ -318,11 +390,78 @@ export const MetaverseBuilder = () => {
     setSelectedObject(null);
   };
 
+  const updateObjectProperty = (property: keyof LandObject, value: any) => {
+    if (!selectedObject || !selectedLand) return;
+
+    const updatedObject = { ...selectedObject, [property]: value };
+    setSelectedObject(updatedObject);
+
+    const updatedLand = {
+      ...selectedLand,
+      objects: selectedLand.objects.map(obj => 
+        obj.id === selectedObject.id ? updatedObject : obj
+      )
+    };
+
+    setSelectedLand(updatedLand);
+    setLands(prev => prev.map(land => 
+      land.id === selectedLand.id ? updatedLand : land
+    ));
+  };
+
+  const duplicateObject = () => {
+    if (!selectedObject || !selectedLand) return;
+
+    const newObject: LandObject = {
+      ...selectedObject,
+      id: Date.now().toString(),
+      name: `${selectedObject.name} (Copy)`,
+      position: [
+        selectedObject.position[0] + 2,
+        selectedObject.position[1],
+        selectedObject.position[2] + 2
+      ]
+    };
+
+    const updatedLand = {
+      ...selectedLand,
+      objects: [...selectedLand.objects, newObject]
+    };
+
+    setSelectedLand(updatedLand);
+    setLands(prev => prev.map(land => 
+      land.id === selectedLand.id ? updatedLand : land
+    ));
+
+    toast({
+      title: "Object Duplicated",
+      description: `${selectedObject.name} has been duplicated.`
+    });
+  };
+
   const saveLand = () => {
+    localStorage.setItem('metaverse-lands', JSON.stringify(lands));
     toast({
       title: "Land Saved",
-      description: "Your metaverse land has been saved successfully!"
+      description: "Your metaverse land has been saved to browser storage!"
     });
+  };
+
+  const handleObjectUpdate = (updatedObject: LandObject) => {
+    if (!selectedLand) return;
+
+    const updatedLand = {
+      ...selectedLand,
+      objects: selectedLand.objects.map(obj => 
+        obj.id === updatedObject.id ? updatedObject : obj
+      )
+    };
+
+    setSelectedLand(updatedLand);
+    setLands(prev => prev.map(land => 
+      land.id === selectedLand.id ? updatedLand : land
+    ));
+    setSelectedObject(updatedObject);
   };
 
   return (
@@ -375,14 +514,9 @@ export const MetaverseBuilder = () => {
                       land={selectedLand}
                       selectedObject={selectedObject}
                       onObjectClick={setSelectedObject}
-                    />
-                    <OrbitControls
-                      enablePan={true}
-                      enableZoom={true}
-                      enableRotate={true}
-                      minDistance={10}
-                      maxDistance={100}
-                      maxPolarAngle={Math.PI / 2}
+                      onObjectUpdate={handleObjectUpdate}
+                      editMode={editMode}
+                      transformMode={transformMode}
                     />
                   </Canvas>
                   
@@ -475,37 +609,152 @@ export const MetaverseBuilder = () => {
           {selectedObject && editMode && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Move className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Move className="w-4 h-4" />
                   Object Properties
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Name</Label>
+                  <Label className="text-xs">Name</Label>
                   <Input 
                     value={selectedObject.name}
-                    onChange={(e) => {
-                      const newName = e.target.value;
-                      setSelectedObject(prev => prev ? { ...prev, name: newName } : null);
-                    }}
+                    className="h-8 text-sm"
+                    onChange={(e) => updateObjectProperty('name', e.target.value)}
                   />
                 </div>
                 
                 <div>
-                  <Label>Type</Label>
-                  <Badge variant="outline">{selectedObject.type}</Badge>
+                  <Label className="text-xs">Type</Label>
+                  <Badge variant="outline" className="text-xs">{selectedObject.type}</Badge>
                 </div>
-                
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="w-full"
-                  onClick={deleteObject}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Object
-                </Button>
+
+                <div>
+                  <Label className="text-xs mb-2 block">Transform Mode</Label>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant={transformMode === 'translate' ? 'default' : 'outline'}
+                      className="flex-1 h-8 text-xs"
+                      onClick={() => setTransformMode('translate')}
+                    >
+                      <Move className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={transformMode === 'rotate' ? 'default' : 'outline'}
+                      className="flex-1 h-8 text-xs"
+                      onClick={() => setTransformMode('rotate')}
+                    >
+                      <RotateCw className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={transformMode === 'scale' ? 'default' : 'outline'}
+                      className="flex-1 h-8 text-xs"
+                      onClick={() => setTransformMode('scale')}
+                    >
+                      <Maximize className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs">Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={selectedObject.color}
+                      onChange={(e) => updateObjectProperty('color', e.target.value)}
+                      className="h-8 w-16 p-1"
+                    />
+                    <Input
+                      value={selectedObject.color}
+                      onChange={(e) => updateObjectProperty('color', e.target.value)}
+                      className="h-8 flex-1 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-2 border-t">
+                  <div>
+                    <Label className="text-xs mb-1">Position</Label>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs w-4">X:</span>
+                        <Slider
+                          value={[selectedObject.position[0]]}
+                          onValueChange={([x]) => updateObjectProperty('position', [x, selectedObject.position[1], selectedObject.position[2]])}
+                          min={-25}
+                          max={25}
+                          step={0.5}
+                          className="flex-1"
+                        />
+                        <span className="text-xs w-8 text-right">{selectedObject.position[0].toFixed(1)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs w-4">Y:</span>
+                        <Slider
+                          value={[selectedObject.position[1]]}
+                          onValueChange={([y]) => updateObjectProperty('position', [selectedObject.position[0], y, selectedObject.position[2]])}
+                          min={0}
+                          max={10}
+                          step={0.5}
+                          className="flex-1"
+                        />
+                        <span className="text-xs w-8 text-right">{selectedObject.position[1].toFixed(1)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs w-4">Z:</span>
+                        <Slider
+                          value={[selectedObject.position[2]]}
+                          onValueChange={([z]) => updateObjectProperty('position', [selectedObject.position[0], selectedObject.position[1], z])}
+                          min={-25}
+                          max={25}
+                          step={0.5}
+                          className="flex-1"
+                        />
+                        <span className="text-xs w-8 text-right">{selectedObject.position[2].toFixed(1)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs mb-1">Scale</Label>
+                    <div className="flex items-center gap-2">
+                      <Slider
+                        value={[selectedObject.scale[0]]}
+                        onValueChange={([s]) => updateObjectProperty('scale', [s, s, s])}
+                        min={0.5}
+                        max={3}
+                        step={0.1}
+                        className="flex-1"
+                      />
+                      <span className="text-xs w-8 text-right">{selectedObject.scale[0].toFixed(1)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-8 text-xs"
+                    onClick={duplicateObject}
+                  >
+                    <Copy className="w-3 h-3 mr-1" />
+                    Copy
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1 h-8 text-xs"
+                    onClick={deleteObject}
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    Delete
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
