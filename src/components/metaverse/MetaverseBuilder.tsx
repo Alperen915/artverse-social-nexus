@@ -29,12 +29,13 @@ import * as THREE from 'three';
 
 interface LandObject {
   id: string;
-  type: 'building' | 'decoration' | 'nft_display' | 'portal';
+  type: 'building' | 'decoration' | 'nft_display' | 'portal' | 'tree' | 'sculpture' | 'fountain' | 'light' | 'platform' | 'road' | 'wall' | 'garden';
   position: [number, number, number];
   rotation: [number, number, number];
   scale: [number, number, number];
   color: string;
   name: string;
+  material?: 'standard' | 'metallic' | 'glass' | 'neon';
 }
 
 interface MetaverseLand {
@@ -72,10 +73,141 @@ function ObjectComponent({ object, isSelected, onClick }: {
         return <boxGeometry args={[2, 2.5, 0.2]} />;
       case 'portal':
         return <torusGeometry args={[1.5, 0.5, 8, 16]} />;
+      case 'tree':
+        return (
+          <group>
+            <mesh position={[0, 0.5, 0]}>
+              <cylinderGeometry args={[0.2, 0.3, 1.5, 8]} />
+              <meshStandardMaterial color="#8B4513" />
+            </mesh>
+            <mesh position={[0, 1.5, 0]}>
+              <coneGeometry args={[1, 2, 8]} />
+              <meshStandardMaterial color="#228B22" />
+            </mesh>
+          </group>
+        );
+      case 'sculpture':
+        return <octahedronGeometry args={[1, 0]} />;
+      case 'fountain':
+        return (
+          <group>
+            <mesh position={[0, 0.5, 0]}>
+              <cylinderGeometry args={[1.5, 1.5, 0.5, 16]} />
+              <meshStandardMaterial color="#4682B4" />
+            </mesh>
+            <mesh position={[0, 1.5, 0]}>
+              <sphereGeometry args={[0.5, 16, 16]} />
+              <meshStandardMaterial color="#87CEEB" />
+            </mesh>
+          </group>
+        );
+      case 'light':
+        return (
+          <group>
+            <mesh position={[0, 2, 0]}>
+              <cylinderGeometry args={[0.1, 0.1, 3, 8]} />
+              <meshStandardMaterial color="#2F4F4F" />
+            </mesh>
+            <mesh position={[0, 3.5, 0]}>
+              <sphereGeometry args={[0.3, 16, 16]} />
+              <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={2} />
+            </mesh>
+          </group>
+        );
+      case 'platform':
+        return <cylinderGeometry args={[2, 2, 0.3, 16]} />;
+      case 'road':
+        return <boxGeometry args={[10, 0.1, 2]} />;
+      case 'wall':
+        return <boxGeometry args={[4, 2, 0.3]} />;
+      case 'garden':
+        return (
+          <group>
+            <mesh position={[0, 0.1, 0]}>
+              <boxGeometry args={[3, 0.2, 3]} />
+              <meshStandardMaterial color="#9ACD32" />
+            </mesh>
+            <mesh position={[0, 0.5, 0]}>
+              <sphereGeometry args={[0.3, 8, 8]} />
+              <meshStandardMaterial color="#FF1493" />
+            </mesh>
+          </group>
+        );
       default:
         return <boxGeometry args={[1, 1, 1]} />;
     }
   };
+
+  const getMaterial = () => {
+    const baseColor = isSelected ? '#8B5CF6' : hovered ? '#A78BFA' : object.color;
+    
+    switch (object.material) {
+      case 'metallic':
+        return (
+          <meshStandardMaterial 
+            color={baseColor}
+            metalness={0.9}
+            roughness={0.1}
+            opacity={object.type === 'portal' ? 0.7 : 1}
+            transparent={object.type === 'portal'}
+          />
+        );
+      case 'glass':
+        return (
+          <meshPhysicalMaterial 
+            color={baseColor}
+            metalness={0.1}
+            roughness={0.1}
+            transmission={0.9}
+            thickness={0.5}
+            opacity={0.3}
+            transparent
+          />
+        );
+      case 'neon':
+        return (
+          <meshStandardMaterial 
+            color={baseColor}
+            emissive={baseColor}
+            emissiveIntensity={1.5}
+            opacity={object.type === 'portal' ? 0.7 : 1}
+            transparent={object.type === 'portal'}
+          />
+        );
+      default:
+        return (
+          <meshStandardMaterial 
+            color={baseColor}
+            opacity={object.type === 'portal' ? 0.7 : 1}
+            transparent={object.type === 'portal'}
+          />
+        );
+    }
+  };
+
+  // Complex geometries are returned as groups, simple ones as single mesh
+  if (['tree', 'fountain', 'light', 'garden'].includes(object.type)) {
+    return (
+      <group
+        ref={meshRef as any}
+        position={object.position}
+        rotation={object.rotation}
+        scale={object.scale}
+        onClick={onClick}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
+        {getGeometry()}
+        
+        {/* Object Label */}
+        <Html position={[0, 3, 0]} center>
+          <div className="bg-background/80 backdrop-blur-sm rounded px-2 py-1 text-xs border pointer-events-none">
+            {object.name}
+          </div>
+        </Html>
+      </group>
+    );
+  }
 
   return (
     <mesh
@@ -88,18 +220,19 @@ function ObjectComponent({ object, isSelected, onClick }: {
       onPointerOut={() => setHovered(false)}
     >
       {getGeometry()}
-      <meshStandardMaterial 
-        color={isSelected ? '#8B5CF6' : hovered ? '#A78BFA' : object.color}
-        opacity={object.type === 'portal' ? 0.7 : 1}
-        transparent={object.type === 'portal'}
-      />
+      {getMaterial()}
       
       {/* Object Label */}
       <Html position={[0, 2, 0]} center>
-        <div className="bg-background/80 backdrop-blur-sm rounded px-2 py-1 text-xs border">
+        <div className="bg-background/80 backdrop-blur-sm rounded px-2 py-1 text-xs border pointer-events-none">
           {object.name}
         </div>
       </Html>
+      
+      {/* Light glow effect */}
+      {object.type === 'light' && (
+        <pointLight position={[0, 3.5, 0]} intensity={2} distance={10} color="#FFD700" />
+      )}
     </mesh>
   );
 }
@@ -274,11 +407,41 @@ export const MetaverseBuilder = () => {
     classical: { name: 'Classical', color: '#F59E0B' }
   };
 
-  const objectTypes = [
-    { type: 'building', name: 'Building', icon: Building, color: '#374151' },
-    { type: 'decoration', name: 'Decoration', icon: Layers3, color: '#10B981' },
-    { type: 'nft_display', name: 'NFT Display', icon: MapPin, color: '#8B5CF6' },
-    { type: 'portal', name: 'Portal', icon: RotateCw, color: '#F59E0B' }
+  const objectCategories = {
+    structures: [
+      { type: 'building', name: 'Building', icon: Building, color: '#374151' },
+      { type: 'platform', name: 'Platform', icon: Layers3, color: '#6B7280' },
+      { type: 'wall', name: 'Wall', icon: Boxes, color: '#9CA3AF' },
+      { type: 'road', name: 'Road', icon: MapPin, color: '#4B5563' },
+    ],
+    nature: [
+      { type: 'tree', name: 'Tree', icon: Layers3, color: '#228B22' },
+      { type: 'garden', name: 'Garden', icon: Palette, color: '#9ACD32' },
+      { type: 'fountain', name: 'Fountain', icon: RotateCw, color: '#4682B4' },
+    ],
+    interactive: [
+      { type: 'nft_display', name: 'NFT Display', icon: MapPin, color: '#8B5CF6' },
+      { type: 'portal', name: 'Portal', icon: RotateCw, color: '#F59E0B' },
+      { type: 'light', name: 'Light Post', icon: Plus, color: '#FFD700' },
+    ],
+    art: [
+      { type: 'decoration', name: 'Cone', icon: Layers3, color: '#10B981' },
+      { type: 'sculpture', name: 'Sculpture', icon: Boxes, color: '#E11D48' },
+    ]
+  };
+
+  const allObjectTypes = [
+    ...objectCategories.structures,
+    ...objectCategories.nature,
+    ...objectCategories.interactive,
+    ...objectCategories.art
+  ];
+
+  const materials = [
+    { value: 'standard', name: 'Standard', description: 'Default material' },
+    { value: 'metallic', name: 'Metallic', description: 'Shiny metal look' },
+    { value: 'glass', name: 'Glass', description: 'Transparent glass' },
+    { value: 'neon', name: 'Neon', description: 'Glowing neon effect' },
   ];
 
   // Load lands from localStorage
@@ -351,14 +514,16 @@ export const MetaverseBuilder = () => {
   const addObject = (type: string) => {
     if (!selectedLand) return;
 
+    const objType = allObjectTypes.find(t => t.type === type);
     const newObject: LandObject = {
       id: Date.now().toString(),
       type: type as LandObject['type'],
       position: [0, 1, 0],
       rotation: [0, 0, 0],
       scale: [1, 1, 1],
-      color: objectTypes.find(t => t.type === type)?.color || '#374151',
-      name: `${objectTypes.find(t => t.type === type)?.name} ${selectedLand.objects.length + 1}`
+      color: objType?.color || '#374151',
+      name: `${objType?.name || 'Object'} ${selectedLand.objects.length + 1}`,
+      material: 'standard'
     };
 
     setSelectedLand(prev => prev ? {
@@ -371,6 +536,14 @@ export const MetaverseBuilder = () => {
         ? { ...land, objects: [...land.objects, newObject] }
         : land
     ));
+
+    setSelectedObject(newObject);
+    setEditMode(true);
+
+    toast({
+      title: "Object Added",
+      description: `${newObject.name} has been added to your land.`
+    });
   };
 
   const deleteObject = () => {
@@ -588,19 +761,34 @@ export const MetaverseBuilder = () => {
                   Add Objects
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {objectTypes.map((objType) => (
-                  <Button
-                    key={objType.type}
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => addObject(objType.type)}
-                  >
-                    <objType.icon className="w-4 h-4 mr-2" />
-                    {objType.name}
-                  </Button>
-                ))}
+              <CardContent>
+                <Tabs defaultValue="structures" className="w-full">
+                  <TabsList className="grid grid-cols-2 mb-3">
+                    <TabsTrigger value="structures" className="text-xs">Structures</TabsTrigger>
+                    <TabsTrigger value="nature" className="text-xs">Nature</TabsTrigger>
+                  </TabsList>
+                  <TabsList className="grid grid-cols-2 mb-3">
+                    <TabsTrigger value="interactive" className="text-xs">Interactive</TabsTrigger>
+                    <TabsTrigger value="art" className="text-xs">Art</TabsTrigger>
+                  </TabsList>
+                  
+                  {Object.entries(objectCategories).map(([category, items]) => (
+                    <TabsContent key={category} value={category} className="space-y-2 mt-0">
+                      {items.map((objType) => (
+                        <Button
+                          key={objType.type}
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start h-8"
+                          onClick={() => addObject(objType.type)}
+                        >
+                          <objType.icon className="w-3 h-3 mr-2" />
+                          <span className="text-xs">{objType.name}</span>
+                        </Button>
+                      ))}
+                    </TabsContent>
+                  ))}
+                </Tabs>
               </CardContent>
             </Card>
           )}
@@ -657,6 +845,28 @@ export const MetaverseBuilder = () => {
                       <Maximize className="w-3 h-3" />
                     </Button>
                   </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs">Material</Label>
+                  <Select 
+                    value={selectedObject.material || 'standard'} 
+                    onValueChange={(value: any) => updateObjectProperty('material', value)}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {materials.map((mat) => (
+                        <SelectItem key={mat.value} value={mat.value} className="text-xs">
+                          <div>
+                            <div className="font-medium">{mat.name}</div>
+                            <div className="text-xs text-muted-foreground">{mat.description}</div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
