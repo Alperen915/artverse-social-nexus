@@ -220,6 +220,44 @@ export type Database = {
           },
         ]
       }
+      dao_multisig_wallets: {
+        Row: {
+          community_id: string
+          created_at: string
+          id: string
+          required_signatures: number
+          signers: string[]
+          updated_at: string
+          wallet_address: string | null
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          id?: string
+          required_signatures?: number
+          signers?: string[]
+          updated_at?: string
+          wallet_address?: string | null
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          id?: string
+          required_signatures?: number
+          signers?: string[]
+          updated_at?: string
+          wallet_address?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dao_multisig_wallets_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dao_tokens: {
         Row: {
           community_id: string
@@ -645,6 +683,56 @@ export type Database = {
           },
         ]
       }
+      pending_multisig_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          description: string | null
+          executed_at: string | null
+          id: string
+          signatures: string[]
+          status: string
+          to_address: string
+          transaction_hash: string | null
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          description?: string | null
+          executed_at?: string | null
+          id?: string
+          signatures?: string[]
+          status?: string
+          to_address: string
+          transaction_hash?: string | null
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          executed_at?: string | null
+          id?: string
+          signatures?: string[]
+          status?: string
+          to_address?: string
+          transaction_hash?: string | null
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_multisig_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "dao_multisig_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string | null
@@ -734,6 +822,80 @@ export type Database = {
         }
         Relationships: []
       }
+      proposal_actions: {
+        Row: {
+          action_params: Json
+          action_type: string
+          created_at: string
+          executed: boolean
+          executed_at: string | null
+          execution_result: Json | null
+          id: string
+          proposal_id: string
+        }
+        Insert: {
+          action_params?: Json
+          action_type: string
+          created_at?: string
+          executed?: boolean
+          executed_at?: string | null
+          execution_result?: Json | null
+          id?: string
+          proposal_id: string
+        }
+        Update: {
+          action_params?: Json
+          action_type?: string
+          created_at?: string
+          executed?: boolean
+          executed_at?: string | null
+          execution_result?: Json | null
+          id?: string
+          proposal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_actions_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposal_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          default_fields: Json
+          description: string | null
+          id: string
+          is_system: boolean
+          template_name: string
+          template_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          default_fields?: Json
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          template_name: string
+          template_type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          default_fields?: Json
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          template_name?: string
+          template_type?: string
+        }
+        Relationships: []
+      }
       proposals: {
         Row: {
           community_id: string | null
@@ -744,6 +906,7 @@ export type Database = {
           no_votes: number | null
           proposal_type: string | null
           status: Database["public"]["Enums"]["proposal_status"] | null
+          template_id: string | null
           title: string
           total_voting_power: number | null
           voting_end: string | null
@@ -759,6 +922,7 @@ export type Database = {
           no_votes?: number | null
           proposal_type?: string | null
           status?: Database["public"]["Enums"]["proposal_status"] | null
+          template_id?: string | null
           title: string
           total_voting_power?: number | null
           voting_end?: string | null
@@ -774,6 +938,7 @@ export type Database = {
           no_votes?: number | null
           proposal_type?: string | null
           status?: Database["public"]["Enums"]["proposal_status"] | null
+          template_id?: string | null
           title?: string
           total_voting_power?: number | null
           voting_end?: string | null
@@ -786,6 +951,13 @@ export type Database = {
             columns: ["community_id"]
             isOneToOne: false
             referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "proposal_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -1087,6 +1259,53 @@ export type Database = {
         }
         Relationships: []
       }
+      treasury_transactions: {
+        Row: {
+          amount: number
+          community_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          from_address: string | null
+          id: string
+          to_address: string | null
+          transaction_hash: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          community_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          from_address?: string | null
+          id?: string
+          to_address?: string | null
+          transaction_hash?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          community_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          from_address?: string | null
+          id?: string
+          to_address?: string | null
+          transaction_hash?: string | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treasury_transactions_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_token_balances: {
         Row: {
           balance: number
@@ -1121,6 +1340,44 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vote_delegations: {
+        Row: {
+          active: boolean
+          community_id: string
+          created_at: string
+          delegate_id: string
+          delegator_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          community_id: string
+          created_at?: string
+          delegate_id: string
+          delegator_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          community_id?: string
+          created_at?: string
+          delegate_id?: string
+          delegator_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vote_delegations_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
             referencedColumns: ["id"]
           },
         ]
@@ -1177,6 +1434,10 @@ export type Database = {
           payout_amount: number
           user_id: string
         }[]
+      }
+      get_voting_power: {
+        Args: { comm_id: string; voter_id: string }
+        Returns: number
       }
       handle_dao_membership_payment: {
         Args: {
