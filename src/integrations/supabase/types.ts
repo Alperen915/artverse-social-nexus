@@ -65,6 +65,41 @@ export type Database = {
           },
         ]
       }
+      auction_bids: {
+        Row: {
+          auction_id: string | null
+          bid_amount: number
+          bidder_address: string
+          created_at: string | null
+          id: string
+          transaction_hash: string | null
+        }
+        Insert: {
+          auction_id?: string | null
+          bid_amount: number
+          bidder_address: string
+          created_at?: string | null
+          id?: string
+          transaction_hash?: string | null
+        }
+        Update: {
+          auction_id?: string | null
+          bid_amount?: number
+          bidder_address?: string
+          created_at?: string | null
+          id?: string
+          transaction_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_bids_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "nft_auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blockchain_transactions: {
         Row: {
           block_number: number | null
@@ -109,6 +144,38 @@ export type Database = {
           value?: number | null
         }
         Relationships: []
+      }
+      bundle_items: {
+        Row: {
+          bundle_id: string | null
+          created_at: string | null
+          id: string
+          nft_contract: string
+          token_id: string
+        }
+        Insert: {
+          bundle_id?: string | null
+          created_at?: string | null
+          id?: string
+          nft_contract: string
+          token_id: string
+        }
+        Update: {
+          bundle_id?: string | null
+          created_at?: string | null
+          id?: string
+          nft_contract?: string
+          token_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "nft_bundles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       communities: {
         Row: {
@@ -523,6 +590,87 @@ export type Database = {
           },
         ]
       }
+      nft_auctions: {
+        Row: {
+          created_at: string | null
+          current_bid: number | null
+          end_time: string
+          highest_bidder: string | null
+          id: string
+          nft_contract: string
+          reserve_price: number | null
+          seller_address: string
+          start_time: string
+          starting_price: number
+          status: string
+          token_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_bid?: number | null
+          end_time: string
+          highest_bidder?: string | null
+          id?: string
+          nft_contract: string
+          reserve_price?: number | null
+          seller_address: string
+          start_time?: string
+          starting_price: number
+          status?: string
+          token_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_bid?: number | null
+          end_time?: string
+          highest_bidder?: string | null
+          id?: string
+          nft_contract?: string
+          reserve_price?: number | null
+          seller_address?: string
+          start_time?: string
+          starting_price?: number
+          status?: string
+          token_id?: string
+        }
+        Relationships: []
+      }
+      nft_bundles: {
+        Row: {
+          buyer_address: string | null
+          created_at: string | null
+          creator_id: string | null
+          description: string | null
+          id: string
+          sold_at: string | null
+          status: string
+          title: string
+          total_price: number
+        }
+        Insert: {
+          buyer_address?: string | null
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          id?: string
+          sold_at?: string | null
+          status?: string
+          title: string
+          total_price: number
+        }
+        Update: {
+          buyer_address?: string | null
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          id?: string
+          sold_at?: string | null
+          status?: string
+          title?: string
+          total_price?: number
+        }
+        Relationships: []
+      }
       nft_galleries: {
         Row: {
           community_id: string | null
@@ -682,6 +830,117 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      nft_price_history: {
+        Row: {
+          buyer_address: string
+          id: string
+          marketplace: string
+          nft_contract: string
+          price: number
+          sale_date: string | null
+          sale_type: string
+          seller_address: string
+          token_id: string
+          transaction_hash: string
+        }
+        Insert: {
+          buyer_address: string
+          id?: string
+          marketplace: string
+          nft_contract: string
+          price: number
+          sale_date?: string | null
+          sale_type: string
+          seller_address: string
+          token_id: string
+          transaction_hash: string
+        }
+        Update: {
+          buyer_address?: string
+          id?: string
+          marketplace?: string
+          nft_contract?: string
+          price?: number
+          sale_date?: string | null
+          sale_type?: string
+          seller_address?: string
+          token_id?: string
+          transaction_hash?: string
+        }
+        Relationships: []
+      }
+      nft_rentals: {
+        Row: {
+          collateral_amount: number
+          created_at: string | null
+          daily_rate: number
+          end_date: string | null
+          id: string
+          lender_address: string
+          nft_contract: string
+          renter_address: string | null
+          start_date: string | null
+          status: string
+          token_id: string
+          transaction_hash: string | null
+        }
+        Insert: {
+          collateral_amount: number
+          created_at?: string | null
+          daily_rate: number
+          end_date?: string | null
+          id?: string
+          lender_address: string
+          nft_contract: string
+          renter_address?: string | null
+          start_date?: string | null
+          status?: string
+          token_id: string
+          transaction_hash?: string | null
+        }
+        Update: {
+          collateral_amount?: number
+          created_at?: string | null
+          daily_rate?: number
+          end_date?: string | null
+          id?: string
+          lender_address?: string
+          nft_contract?: string
+          renter_address?: string | null
+          start_date?: string | null
+          status?: string
+          token_id?: string
+          transaction_hash?: string | null
+        }
+        Relationships: []
+      }
+      nft_royalties: {
+        Row: {
+          created_at: string | null
+          creator_address: string
+          id: string
+          nft_contract: string
+          royalty_percentage: number
+          token_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          creator_address: string
+          id?: string
+          nft_contract: string
+          royalty_percentage: number
+          token_id: string
+        }
+        Update: {
+          created_at?: string | null
+          creator_address?: string
+          id?: string
+          nft_contract?: string
+          royalty_percentage?: number
+          token_id?: string
+        }
+        Relationships: []
       }
       pending_multisig_transactions: {
         Row: {
@@ -1177,6 +1436,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      royalty_distributions: {
+        Row: {
+          amount: number
+          distributed_at: string | null
+          id: string
+          nft_contract: string
+          recipient_address: string
+          sale_transaction_hash: string
+          token_id: string
+        }
+        Insert: {
+          amount: number
+          distributed_at?: string | null
+          id?: string
+          nft_contract: string
+          recipient_address: string
+          sale_transaction_hash: string
+          token_id: string
+        }
+        Update: {
+          amount?: number
+          distributed_at?: string | null
+          id?: string
+          nft_contract?: string
+          recipient_address?: string
+          sale_transaction_hash?: string
+          token_id?: string
+        }
+        Relationships: []
       }
       token_marketplace_listings: {
         Row: {
