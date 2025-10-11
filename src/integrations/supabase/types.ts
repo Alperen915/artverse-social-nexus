@@ -177,6 +177,65 @@ export type Database = {
           },
         ]
       }
+      collaborative_nfts: {
+        Row: {
+          community_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          metadata: Json | null
+          mint_transaction_hash: string | null
+          nft_contract: string | null
+          status: string
+          title: string
+          token_id: string | null
+          total_shares: number
+          updated_at: string | null
+        }
+        Insert: {
+          community_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          mint_transaction_hash?: string | null
+          nft_contract?: string | null
+          status?: string
+          title: string
+          token_id?: string | null
+          total_shares?: number
+          updated_at?: string | null
+        }
+        Update: {
+          community_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          mint_transaction_hash?: string | null
+          nft_contract?: string | null
+          status?: string
+          title?: string
+          token_id?: string | null
+          total_shares?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaborative_nfts_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       communities: {
         Row: {
           artverse_status: string | null
@@ -280,6 +339,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "community_memberships_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_projects: {
+        Row: {
+          community_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          project_type: string | null
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          community_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          project_type?: string | null
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          community_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          project_type?: string | null
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_projects_community_id_fkey"
             columns: ["community_id"]
             isOneToOne: false
             referencedRelation: "communities"
@@ -670,6 +779,50 @@ export type Database = {
           total_price?: number
         }
         Relationships: []
+      }
+      nft_collaborators: {
+        Row: {
+          approved: boolean | null
+          collaborative_nft_id: string | null
+          contribution_description: string | null
+          id: string
+          joined_at: string | null
+          role: string
+          share_percentage: number
+          user_id: string | null
+          wallet_address: string | null
+        }
+        Insert: {
+          approved?: boolean | null
+          collaborative_nft_id?: string | null
+          contribution_description?: string | null
+          id?: string
+          joined_at?: string | null
+          role: string
+          share_percentage: number
+          user_id?: string | null
+          wallet_address?: string | null
+        }
+        Update: {
+          approved?: boolean | null
+          collaborative_nft_id?: string | null
+          contribution_description?: string | null
+          id?: string
+          joined_at?: string | null
+          role?: string
+          share_percentage?: number
+          user_id?: string | null
+          wallet_address?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_collaborators_collaborative_nft_id_fkey"
+            columns: ["collaborative_nft_id"]
+            isOneToOne: false
+            referencedRelation: "collaborative_nfts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nft_galleries: {
         Row: {
@@ -1081,6 +1234,59 @@ export type Database = {
         }
         Relationships: []
       }
+      project_tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          position: number
+          priority: string | null
+          project_id: string | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          position?: number
+          priority?: string | null
+          project_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          position?: number
+          priority?: string | null
+          project_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "community_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       proposal_actions: {
         Row: {
           action_params: Json
@@ -1466,6 +1672,62 @@ export type Database = {
           token_id?: string
         }
         Relationships: []
+      }
+      shared_resources: {
+        Row: {
+          category: string | null
+          community_id: string | null
+          description: string | null
+          download_count: number | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          is_public: boolean | null
+          title: string
+          uploaded_at: string | null
+          uploader_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          community_id?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_public?: boolean | null
+          title: string
+          uploaded_at?: string | null
+          uploader_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          community_id?: string | null
+          description?: string | null
+          download_count?: number | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_public?: boolean | null
+          title?: string
+          uploaded_at?: string | null
+          uploader_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_resources_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       token_marketplace_listings: {
         Row: {

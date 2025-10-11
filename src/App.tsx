@@ -14,6 +14,7 @@ import Events from "./pages/Events";
 import Profile from "./pages/Profile";
 import Metaverse from "./pages/Metaverse";
 import DAOGovernance from "./pages/DAOGovernance";
+import Collaboration from "./pages/Collaboration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/governance" element={<Governance />} />
           <Route path="/dao/:id" element={<DAOGovernance />} />
+          <Route path="/collaboration/:id" element={<Collaboration />} />
           <Route path="/events" element={<Events />} />
           <Route path="/metaverse" element={<Metaverse />} />
           <Route path="/profile" element={<Profile />} />
