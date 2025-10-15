@@ -89,34 +89,34 @@ export const SUPPORTED_NETWORKS: Record<string, NetworkConfig> = {
     rpcUrls: ['https://lb.drpc.org/ogrpc?network=avalanche&dkey='],
     blockExplorerUrls: ['https://snowtrace.io/'],
   },
-  // Bros Chain - Polygon Supernet
+  // Bros Chain Testnet - Polygon Supernet
   BROS_CHAIN_TESTNET: {
-    chainId: '0x42524F53', // Custom Chain ID for Bros Chain Testnet
-    chainName: 'Bros Chain Testnet (Polygon Supernet)',
+    chainId: '0xD9560', // 888888 in hex
+    chainName: 'Bros Chain Testnet',
     nativeCurrency: {
       name: 'Bros Token',
       symbol: 'BROS',
       decimals: 18,
     },
     rpcUrls: [
-      'https://rpc-testnet.broschain.io', // Your Polygon Supernet RPC
-      'https://rpc-testnet-backup.broschain.io' // Backup RPC
+      'https://testnet-rpc.bros-chain.com',
+      'https://rpc.ankr.com/bros_testnet' // Backup RPC
     ],
-    blockExplorerUrls: ['https://explorer-testnet.broschain.io/'],
+    blockExplorerUrls: ['https://testnet-explorer.bros-chain.com/'],
   },
   BROS_CHAIN: {
-    chainId: '0x42524F534D', // Custom Chain ID for Bros Chain Mainnet
-    chainName: 'Bros Chain (Polygon Supernet)',
+    chainId: '0xF423F', // 999999 in hex
+    chainName: 'Bros Chain Mainnet',
     nativeCurrency: {
       name: 'Bros Token',
       symbol: 'BROS',
       decimals: 18,
     },
     rpcUrls: [
-      'https://rpc.broschain.io', // Your Polygon Supernet RPC
-      'https://rpc-backup.broschain.io' // Backup RPC
+      'https://rpc.bros-chain.com',
+      'https://rpc.ankr.com/bros_mainnet' // Backup RPC
     ],
-    blockExplorerUrls: ['https://explorer.broschain.io/'],
+    blockExplorerUrls: ['https://explorer.bros-chain.com/'],
   },
 };
 // Backward compatibility

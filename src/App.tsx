@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import Metaverse from "./pages/Metaverse";
 import DAOGovernance from "./pages/DAOGovernance";
 import Collaboration from "./pages/Collaboration";
+import BrosNetwork from "./pages/BrosNetwork";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/metaverse" element={<Metaverse />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile/:id" element={<Profile />} />
+          <Route path="/bros-network" element={<BrosNetwork />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
