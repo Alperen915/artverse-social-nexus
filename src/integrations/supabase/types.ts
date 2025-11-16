@@ -573,6 +573,36 @@ export type Database = {
           },
         ]
       }
+      faucet_claims: {
+        Row: {
+          amount: string
+          chain_id: string
+          claimed_at: string | null
+          id: string
+          tx_hash: string | null
+          user_id: string | null
+          wallet_address: string
+        }
+        Insert: {
+          amount: string
+          chain_id: string
+          claimed_at?: string | null
+          id?: string
+          tx_hash?: string | null
+          user_id?: string | null
+          wallet_address: string
+        }
+        Update: {
+          amount?: string
+          chain_id?: string
+          claimed_at?: string | null
+          id?: string
+          tx_hash?: string | null
+          user_id?: string | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       gallery_sales: {
         Row: {
           buyer_address: string
@@ -1144,6 +1174,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       posts: {
         Row: {
@@ -1860,27 +1911,33 @@ export type Database = {
       user_token_balances: {
         Row: {
           balance: number
+          chain_id: string | null
           chain_name: string
           created_at: string | null
           id: string
+          last_synced: string | null
           token_symbol: string
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           balance?: number
+          chain_id?: string | null
           chain_name?: string
           created_at?: string | null
           id?: string
+          last_synced?: string | null
           token_symbol?: string
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           balance?: number
+          chain_id?: string | null
           chain_name?: string
           created_at?: string | null
           id?: string
+          last_synced?: string | null
           token_symbol?: string
           updated_at?: string | null
           user_id?: string | null

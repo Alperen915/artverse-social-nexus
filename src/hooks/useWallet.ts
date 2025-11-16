@@ -79,6 +79,8 @@ export const useWallet = () => {
       '0xa4b1': 'Arbitrum',
       '0xa': 'Optimism',
       '0xa86a': 'Avalanche',
+      '0xD9560': 'Bros Testnet',
+      '0xF423F': 'Bros Mainnet',
     };
     return networks[chainId] || 'Unknown';
   };

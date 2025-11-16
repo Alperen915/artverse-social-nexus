@@ -37,21 +37,21 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Communities</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-purple-400 transition-colors">Explore</a></li>
-              <li><a href="#" className="hover:text-purple-400 transition-colors">Create</a></li>
-              <li><a href="#" className="hover:text-purple-400 transition-colors">Trending</a></li>
-              <li><a href="#" className="hover:text-purple-400 transition-colors">Featured</a></li>
+              <li><a href="/" className="hover:text-purple-400 transition-colors">Explore</a></li>
+              <li><a href="/marketplace" className="hover:text-purple-400 transition-colors">NFT Marketplace</a></li>
+              <li><a href="/token-marketplace" className="hover:text-purple-400 transition-colors">Token Marketplace</a></li>
+              <li><a href="/events" className="hover:text-purple-400 transition-colors">Events</a></li>
             </ul>
           </div>
 
-          {/* Platform */}
+          {/* Bros Chain */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Platform</h4>
+            <h4 className="text-lg font-semibold mb-4">Bros Chain</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-purple-400 transition-colors">Governance</a></li>
-              <li><a href="#" className="hover:text-purple-400 transition-colors">Tokenomics</a></li>
-              <li><a href="#" className="hover:text-purple-400 transition-colors">Roadmap</a></li>
-              <li><a href="#" className="hover:text-purple-400 transition-colors">Documentation</a></li>
+              <li><a href="/bros-network" className="hover:text-purple-400 transition-colors">Network Info</a></li>
+              <li><a href="/docs/BROS_CHAIN_TANITIMI.md" target="_blank" className="hover:text-purple-400 transition-colors">Documentation</a></li>
+              <li><a href="/bros-network" className="hover:text-purple-400 transition-colors">Get BROS Token</a></li>
+              <li><a href="https://github.com/Alperen915" target="_blank" className="hover:text-purple-400 transition-colors">GitHub</a></li>
             </ul>
           </div>
         </div>
