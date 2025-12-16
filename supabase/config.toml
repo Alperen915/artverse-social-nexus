@@ -2,3 +2,12 @@ project_id = "iqlcaznakbdvijnwpstg"
 
 [functions.upload-to-ipfs]
 verify_jwt = false
+
+[functions.mint-nft]
+verify_jwt = false
+
+[functions.list-nft]
+verify_jwt = false
+
+[functions.purchase-nft]
+verify_jwt = false

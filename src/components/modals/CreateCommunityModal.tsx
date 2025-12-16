@@ -261,7 +261,7 @@ export const CreateCommunityModal = ({ isOpen, onClose }: CreateCommunityModalPr
             {!formData.membershipIsFree && (
               <div className="space-y-2">
                 <Label htmlFor="token-requirement" className="text-sm font-medium">
-                  Bros Chain Token Gereksinimi (DAO Hazinesine Gidecek)
+                  Token Gereksinimi (DAO Hazinesine Gidecek)
                 </Label>
                 <Input
                   id="token-requirement"

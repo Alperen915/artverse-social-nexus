@@ -74,7 +74,7 @@ serve(async (req) => {
         mint_id: mintId,
         price: price,
         seller_address: sellerAddress,
-        marketplace: 'Bros Chain Marketplace',
+        marketplace: 'Brosverse NFT Marketplace',
         listing_hash: transactionHash,
         transaction_hash: transactionHash,
         status: 'active'

@@ -74,7 +74,7 @@ export const useAuth = () => {
               user_id: user.id,
               balance: 1000, // Give new users 1000 BROS tokens to start
               token_symbol: 'BROS',
-              chain_name: 'Bros Chain'
+              chain_name: 'Brosverse'
             });
         }
       }

@@ -100,7 +100,7 @@ export const TokenBalanceDisplay = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Coins className="w-5 h-5 text-yellow-500" />
-          Bros Chain Cüzdan
+          Brosverse Cüzdan
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -147,7 +147,7 @@ export const TokenBalanceDisplay = () => {
             </div>
 
             <div className="text-xs text-muted-foreground text-center">
-              Bu veriler simüle edilmiştir. Gerçek Bros Chain entegrasyonu için geliştirme devam ediyor.
+              Platform içi token sistemi aktif.
             </div>
           </div>
         ) : (
@@ -173,10 +173,10 @@ export const TokenBalanceDisplay = () => {
             variant="ghost"
             size="sm"
             className="w-full text-xs"
-            onClick={() => window.open('https://bros-chain.example.com', '_blank')}
+            onClick={() => window.open('https://sepolia.etherscan.io', '_blank')}
           >
             <ExternalLink className="w-3 h-3 mr-1" />
-            Bros Chain Explorer
+            Sepolia Explorer
           </Button>
         </div>
       </CardContent>
