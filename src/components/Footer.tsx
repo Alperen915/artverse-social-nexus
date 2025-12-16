@@ -44,14 +44,14 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Bros Chain */}
+          {/* Resources */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Bros Chain</h4>
+            <h4 className="text-lg font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="/bros-network" className="hover:text-purple-400 transition-colors">Network Info</a></li>
-              <li><a href="/docs/BROS_CHAIN_TANITIMI.md" target="_blank" className="hover:text-purple-400 transition-colors">Documentation</a></li>
-              <li><a href="/bros-network" className="hover:text-purple-400 transition-colors">Get BROS Token</a></li>
+              <li><a href="/governance" className="hover:text-purple-400 transition-colors">DAO Governance</a></li>
+              <li><a href="/metaverse" className="hover:text-purple-400 transition-colors">Metaverse</a></li>
               <li><a href="https://github.com/Alperen915" target="_blank" className="hover:text-purple-400 transition-colors">GitHub</a></li>
+              <li><a href="#" className="hover:text-purple-400 transition-colors">Documentation</a></li>
             </ul>
           </div>
         </div>
