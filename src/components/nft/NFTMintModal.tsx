@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,10 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useWallet } from '@/hooks/useWallet';
 import { useAuth } from '@/hooks/useAuth';
+import { useContracts } from '@/hooks/useContracts';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadToIPFS, NFTMetadata } from '@/utils/ipfsService';
 import { web3Service } from '@/services/web3Service';
-import { Coins, AlertTriangle, Upload } from 'lucide-react';
+import { Coins, AlertTriangle, Upload, CheckCircle2 } from 'lucide-react';
 
 interface NFTMintModalProps {
   isOpen: boolean;
@@ -30,6 +31,14 @@ export const NFTMintModal = ({ isOpen, onClose, submission, onMintComplete }: NF
   const [loading, setLoading] = useState(false);
   const { address, isConnected } = useWallet();
   const { user } = useAuth();
+  const { nftContract, currentNetwork, isContractDeployed, isSupportedNetwork } = useContracts();
+
+  // Auto-fill contract address when network changes
+  useEffect(() => {
+    if (nftContract && nftContract !== '0x0000000000000000000000000000000000000000') {
+      setContractAddress(nftContract);
+    }
+  }, [nftContract]);
 
   const handleMint = async () => {
     if (!isConnected || !address || !user) {
@@ -126,6 +135,24 @@ export const NFTMintModal = ({ isOpen, onClose, submission, onMintComplete }: NF
         </DialogHeader>
 
         <div className="space-y-4">
+          {!isSupportedNetwork && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Desteklenmeyen ağ. Lütfen Sepolia, Polygon veya diğer desteklenen ağlardan birine geçin.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {isContractDeployed && (
+            <Alert>
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription>
+                {currentNetwork?.chainName || 'Unknown Network'} ağında NFT kontratı hazır.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
@@ -150,10 +177,14 @@ export const NFTMintModal = ({ isOpen, onClose, submission, onMintComplete }: NF
               value={contractAddress}
               onChange={(e) => setContractAddress(e.target.value)}
             />
+            {isContractDeployed && (
+              <p className="text-xs text-green-600 mt-1">✓ Varsayılan kontrat adresi kullanılıyor</p>
+            )}
           </div>
 
           <div className="text-xs text-gray-500 space-y-1">
             <p>• Wallet: {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Bağlı değil'}</p>
+            <p>• Ağ: {currentNetwork?.chainName || 'Bağlı değil'}</p>
             <p>• Tahmini Gas: ~0.003 ETH</p>
             <p>• NFT standart: ERC-721</p>
           </div>
